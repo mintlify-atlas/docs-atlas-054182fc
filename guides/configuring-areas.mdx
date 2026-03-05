@@ -1,0 +1,458 @@
+---
+title: Configuring Rain Areas
+description: Complete guide to configuring rain area properties and behavior
+---
+
+## Overview
+
+After creating a rain area, you need to configure its properties to control how items rain down, when the rain stops, and other behaviors.
+
+## Configuration Command
+
+The main configuration command follows this syntax:
+
+```bash
+/rainarea config <area> <property> <value>
+```
+
+All changes are saved immediately and persist across server restarts.
+
+## Configurable Properties
+
+### enabled
+
+Controls whether the area can be activated.
+
+- **Type**: Boolean (`true` or `false`)
+- **Default**: `true`
+- **Usage**: Temporarily disable an area without deleting it
+
+```bash
+/rainarea config myarea enabled false
+```
+
+<Tabs>
+  <Tab title="Disable Area">
+    Prevent an area from being started:
+    
+    ```bash
+    /rainarea config boss_rewards enabled false
+    ```
+    
+    Attempting to start a disabled area will show an error message.
+  </Tab>
+
+  <Tab title="Re-enable Area">
+    Make the area active again:
+    
+    ```bash
+    /rainarea config boss_rewards enabled true
+    ```
+  </Tab>
+</Tabs>
+
+### onetime
+
+Determines if the area can only rain once.
+
+- **Type**: Boolean (`true` or `false`)
+- **Default**: `false`
+- **Usage**: Perfect for one-time rewards or events
+
+```bash
+/rainarea config myarea onetime true
+```
+
+<Warning>
+Once a one-time area has rained, it cannot be started again unless you reset it using `resetonetime`.
+</Warning>
+
+<Tabs>
+  <Tab title="Quest Reward">
+    Configure a one-time area for completing a quest:
+    
+    ```bash
+    /rainarea create quest_complete
+    /rainarea config quest_complete onetime true
+    /rainarea config quest_complete itemsperblock 2
+    ```
+  </Tab>
+
+  <Tab title="Welcome Gift">
+    Create a one-time welcome area for new players:
+    
+    ```bash
+    /rainarea create new_player_gift
+    /rainarea config new_player_gift onetime true
+    /rainarea config new_player_gift timer 200
+    ```
+  </Tab>
+
+  <Tab title="Repeatable Event">
+    Create an area that can be used multiple times:
+    
+    ```bash
+    /rainarea create daily_event
+    /rainarea config daily_event onetime false
+    ```
+  </Tab>
+</Tabs>
+
+### resetonetime
+
+Resets a one-time area so it can be used again.
+
+- **Type**: No value needed
+- **Usage**: Reset the "has rained" flag on one-time areas
+
+```bash
+/rainarea config myarea resetonetime true
+```
+
+<Note>
+The value provided doesn't matter - the command resets the flag regardless. You can use `true`, `false`, or any value.
+</Note>
+
+### itemsperblock
+
+Sets how many items rain per block of area volume.
+
+- **Type**: Integer (0 or higher)
+- **Default**: `0`
+- **Usage**: Controls total item quantity
+
+```bash
+/rainarea config myarea itemsperblock 2
+```
+
+**Calculation**: Total items = Volume × itemsPerBlock
+
+For example, a 10×10×10 area (1,000 blocks) with `itemsperblock 2` will drop 2,000 items total.
+
+<Tabs>
+  <Tab title="Light Rain">
+    Few items spread out:
+    
+    ```bash
+    /rainarea config treasure_room itemsperblock 1
+    ```
+    
+    Good for valuable or rare items.
+  </Tab>
+
+  <Tab title="Moderate Rain">
+    Balanced item distribution:
+    
+    ```bash
+    /rainarea config event_zone itemsperblock 5
+    ```
+    
+    Standard configuration for most use cases.
+  </Tab>
+
+  <Tab title="Heavy Rain">
+    Many items for spectacle:
+    
+    ```bash
+    /rainarea config celebration itemsperblock 10
+    ```
+    
+    Great for celebrations or abundant rewards.
+  </Tab>
+
+  <Tab title="No Items">
+    Only experience orbs, no items:
+    
+    ```bash
+    /rainarea config xp_farm itemsperblock 0
+    /rainarea config xp_farm exprorbs 100
+    ```
+  </Tab>
+</Tabs>
+
+### timer
+
+Sets how long the rain lasts in ticks (20 ticks = 1 second).
+
+- **Type**: Long integer (0 = infinite)
+- **Default**: `0`
+- **Usage**: Automatically stop rain after duration
+
+```bash
+/rainarea config myarea timer 600
+```
+
+**Common durations**:
+- 5 seconds: `100`
+- 10 seconds: `200`
+- 30 seconds: `600`
+- 1 minute: `1200`
+- 5 minutes: `6000`
+
+<Tabs>
+  <Tab title="Quick Drop">
+    Short burst of items:
+    
+    ```bash
+    /rainarea config quick_reward timer 100
+    ```
+  </Tab>
+
+  <Tab title="Sustained Rain">
+    Long-duration rain:
+    
+    ```bash
+    /rainarea config long_event timer 6000
+    ```
+  </Tab>
+
+  <Tab title="Manual Control">
+    No automatic stopping:
+    
+    ```bash
+    /rainarea config manual_area timer 0
+    ```
+    
+    You must use `/rainarea stop` to end the rain.
+  </Tab>
+</Tabs>
+
+### rainpersecond
+
+Controls how many items spawn per second during the rain.
+
+- **Type**: Integer (1 or higher)
+- **Default**: `20`
+- **Usage**: Controls rain rate and visual effect
+
+```bash
+/rainarea config myarea rainpersecond 50
+```
+
+<Note>
+Higher values create more dramatic visual effects but may impact performance. Lower values spread items over more time.
+</Note>
+
+<Tabs>
+  <Tab title="Slow Rain">
+    Gentle, sparse rain:
+    
+    ```bash
+    /rainarea config gentle_rain rainpersecond 10
+    ```
+  </Tab>
+
+  <Tab title="Normal Rain">
+    Standard rate:
+    
+    ```bash
+    /rainarea config standard_area rainpersecond 20
+    ```
+  </Tab>
+
+  <Tab title="Heavy Rain">
+    Fast, intense rain:
+    
+    ```bash
+    /rainarea config intense_rain rainpersecond 100
+    ```
+  </Tab>
+</Tabs>
+
+### exprorbs
+
+Sets how many experience orbs to spawn.
+
+- **Type**: Integer (0 or higher)
+- **Default**: `0`
+- **Usage**: Add experience rewards to the rain
+
+```bash
+/rainarea config myarea exprorbs 50
+```
+
+<Tabs>
+  <Tab title="Items Only">
+    No experience:
+    
+    ```bash
+    /rainarea config item_rain exprorbs 0
+    ```
+  </Tab>
+
+  <Tab title="Mixed Rewards">
+    Combine items and experience:
+    
+    ```bash
+    /rainarea config mixed_rewards itemsperblock 3
+    /rainarea config mixed_rewards exprorbs 25
+    ```
+  </Tab>
+
+  <Tab title="XP Farm">
+    Experience only:
+    
+    ```bash
+    /rainarea config xp_only itemsperblock 0
+    /rainarea config xp_only exprorbs 100
+    ```
+  </Tab>
+</Tabs>
+
+### minexp
+
+Sets the minimum experience points per orb.
+
+- **Type**: Integer (1 or higher)
+- **Default**: Server default (typically 1)
+- **Usage**: Control minimum XP value
+
+```bash
+/rainarea config myarea minexp 5
+```
+
+### maxexp
+
+Sets the maximum experience points per orb.
+
+- **Type**: Integer (must be ≥ minexp)
+- **Default**: Server default (typically 5)
+- **Usage**: Control maximum XP value
+
+```bash
+/rainarea config myarea maxexp 10
+```
+
+<Note>
+Each orb will contain a random amount of XP between `minexp` and `maxexp`. Set them to the same value for consistent XP per orb.
+</Note>
+
+<Tabs>
+  <Tab title="Small XP Rewards">
+    Low experience values:
+    
+    ```bash
+    /rainarea config small_xp minexp 1
+    /rainarea config small_xp maxexp 3
+    /rainarea config small_xp exprorbs 50
+    ```
+  </Tab>
+
+  <Tab title="Large XP Rewards">
+    High experience values:
+    
+    ```bash
+    /rainarea config large_xp minexp 10
+    /rainarea config large_xp maxexp 20
+    /rainarea config large_xp exprorbs 30
+    ```
+  </Tab>
+
+  <Tab title="Fixed XP Amount">
+    Consistent experience per orb:
+    
+    ```bash
+    /rainarea config fixed_xp minexp 5
+    /rainarea config fixed_xp maxexp 5
+    /rainarea config fixed_xp exprorbs 40
+    ```
+  </Tab>
+</Tabs>
+
+## Complete Configuration Examples
+
+### One-Time Treasure Drop
+
+A special reward that can only be triggered once:
+
+```bash
+/rainarea create special_treasure
+/rainarea config special_treasure onetime true
+/rainarea config special_treasure itemsperblock 3
+/rainarea config special_treasure timer 300
+/rainarea config special_treasure rainpersecond 30
+/rainarea config special_treasure exprorbs 20
+/rainarea config special_treasure minexp 5
+/rainarea config special_treasure maxexp 10
+```
+
+### Repeatable Boss Rewards
+
+Rewards that drop after defeating a boss (reusable):
+
+```bash
+/rainarea create boss_loot
+/rainarea config boss_loot onetime false
+/rainarea config boss_loot itemsperblock 5
+/rainarea config boss_loot timer 600
+/rainarea config boss_loot rainpersecond 40
+/rainarea config boss_loot exprorbs 50
+/rainarea config boss_loot minexp 10
+/rainarea config boss_loot maxexp 20
+```
+
+### Infinite Event Area
+
+Manual control with no automatic stopping:
+
+```bash
+/rainarea create manual_event
+/rainarea config manual_event onetime false
+/rainarea config manual_event itemsperblock 2
+/rainarea config manual_event timer 0
+/rainarea config manual_event rainpersecond 25
+/rainarea config manual_event exprorbs 0
+```
+
+### Experience Farm
+
+Only experience orbs, no items:
+
+```bash
+/rainarea create xp_farm
+/rainarea config xp_farm itemsperblock 0
+/rainarea config xp_farm timer 1200
+/rainarea config xp_farm rainpersecond 15
+/rainarea config xp_farm exprorbs 100
+/rainarea config xp_farm minexp 3
+/rainarea config xp_farm maxexp 7
+```
+
+## Viewing Configuration
+
+Check an area's current configuration:
+
+```bash
+/rainarea info <area>
+```
+
+This displays all properties including:
+- World and coordinates
+- Enabled status
+- One-time settings
+- Item and XP configuration
+- Items assigned to the area
+
+## Performance Considerations
+
+<Warning>
+Very large configurations can impact server performance:
+
+- **High itemsperblock** in large areas = many entities
+- **High rainpersecond** = rapid spawning
+- **Many concurrent areas** = increased load
+
+Test configurations on a development server first.
+</Warning>
+
+**Recommendations**:
+- Keep `itemsperblock × volume` under 10,000 items
+- Keep `rainpersecond` under 100 for most servers
+- Use timers to prevent infinite rain
+- Disable areas when not in use
+
+## Next Steps
+
+- [Add items to your configured area](/guides/managing-items)
+- [Learn about permission setup](/guides/permissions)
+- [View all available commands](/api/commands/rainarea)

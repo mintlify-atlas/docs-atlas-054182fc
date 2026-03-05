@@ -1,0 +1,438 @@
+---
+title: Managing Items
+description: Learn how to save items with NBT data and add them to rain areas
+---
+
+## Overview
+
+RainTools allows you to save any Minecraft item (including those with custom names, lore, enchantments, and NBT data) and add them to rain areas with configurable probability.
+
+## Saving Items
+
+Items must be saved before they can be added to rain areas. The plugin stores the complete item data including all NBT information.
+
+<Steps>
+  <Step title="Hold the item in your main hand">
+    Place the item you want to save in your main hand (the selected hotbar slot).
+    
+    <Note>
+    The item can have custom names, lore, enchantments, attributes, or any other NBT data. Everything will be preserved.
+    </Note>
+  </Step>
+
+  <Step title="Save the item with a unique name">
+    Use one of these commands:
+    
+    ```bash
+    /saveitem save <name>
+    # or shorthand:
+    /saveitem <name>
+    ```
+    
+    Example:
+    ```bash
+    /saveitem save legendary_sword
+    # or:
+    /saveitem legendary_sword
+    ```
+  </Step>
+
+  <Step title="Verify the item was saved">
+    Check the saved items list:
+    
+    ```bash
+    /saveitem list
+    ```
+    
+    Your item should appear in the list with its display name and stack size.
+  </Step>
+</Steps>
+
+<Warning>
+If an item with the same name already exists, you'll receive an error. Delete the old item first or choose a different name.
+</Warning>
+
+## Item Saving Examples
+
+<Tabs>
+  <Tab title="Enchanted Weapon">
+    Save a custom enchanted sword:
+    
+    ```bash
+    # Hold the enchanted diamond sword in your hand
+    /saveitem epic_blade
+    ```
+    
+    All enchantments and durability are preserved.
+  </Tab>
+
+  <Tab title="Custom Named Item">
+    Save an item with a custom name and lore:
+    
+    ```bash
+    # Hold the custom item (e.g., "§6Golden Ticket")
+    /saveitem golden_ticket
+    ```
+  </Tab>
+
+  <Tab title="Stacked Items">
+    Save a stack of items:
+    
+    ```bash
+    # Hold 64 diamonds
+    /saveitem diamond_stack
+    ```
+    
+    When this item rains, 64 diamonds will drop each time.
+  </Tab>
+
+  <Tab title="Potion or Book">
+    Save potions or enchanted books:
+    
+    ```bash
+    # Hold the custom potion
+    /saveitem healing_potion
+    
+    # Hold the enchanted book
+    /saveitem rare_enchant
+    ```
+  </Tab>
+</Tabs>
+
+## Adding Items to Areas
+
+Once items are saved, you can add them to rain areas with a specified probability.
+
+### Command Syntax
+
+```bash
+/saveitem add <area> <item> <probability>
+```
+
+- **area**: The name of the rain area
+- **item**: The saved item name
+- **probability**: A decimal between 0.0 and 1.0 (0% to 100%)
+
+### Probability System
+
+The probability determines how often each item drops:
+
+- `1.0` = 100% chance (always drops)
+- `0.5` = 50% chance (drops half the time)
+- `0.1` = 10% chance (drops rarely)
+- `0.01` = 1% chance (very rare)
+
+<Note>
+Each spawn location has independent probability rolls. Multiple items can drop from the same location if they both pass their probability checks.
+</Note>
+
+<Steps>
+  <Step title="Save all items you want to rain">
+    ```bash
+    /saveitem common_coin
+    /saveitem rare_gem
+    /saveitem legendary_artifact
+    ```
+  </Step>
+
+  <Step title="Add items to the area with probabilities">
+    ```bash
+    /saveitem add treasure_area common_coin 0.8
+    /saveitem add treasure_area rare_gem 0.3
+    /saveitem add treasure_area legendary_artifact 0.05
+    ```
+    
+    Common items have higher probability, rare items have lower probability.
+  </Step>
+
+  <Step title="Verify items were added">
+    ```bash
+    /rainarea info treasure_area
+    ```
+    
+    Check the "Saved Items" count in the info output.
+  </Step>
+</Steps>
+
+## Probability Examples
+
+<Tabs>
+  <Tab title="Common Rewards">
+    Configure common items that drop frequently:
+    
+    ```bash
+    /saveitem add daily_event coins 0.9
+    /saveitem add daily_event food 0.7
+    /saveitem add daily_event iron 0.6
+    ```
+    
+    90% coins, 70% food, 60% iron - players get multiple items.
+  </Tab>
+
+  <Tab title="Balanced Loot Table">
+    Mix of common, uncommon, and rare:
+    
+    ```bash
+    /saveitem add boss_loot common_drop 0.8
+    /saveitem add boss_loot uncommon_drop 0.4
+    /saveitem add boss_loot rare_drop 0.15
+    /saveitem add boss_loot epic_drop 0.05
+    ```
+  </Tab>
+
+  <Tab title="Guaranteed + Random">
+    Guarantee some items, randomize others:
+    
+    ```bash
+    /saveitem add quest_reward quest_token 1.0
+    /saveitem add quest_reward bonus_item1 0.5
+    /saveitem add quest_reward bonus_item2 0.5
+    /saveitem add quest_reward rare_bonus 0.1
+    ```
+    
+    Quest token always drops, bonuses are random.
+  </Tab>
+
+  <Tab title="Ultra Rare Items">
+    Very low chance for special items:
+    
+    ```bash
+    /saveitem add event mythic_item 0.01
+    /saveitem add event legendary_item 0.05
+    /saveitem add event rare_item 0.2
+    /saveitem add event common_item 1.0
+    ```
+    
+    1% mythic, 5% legendary, 20% rare, 100% common.
+  </Tab>
+</Tabs>
+
+## Removing Items
+
+### Remove Item from Area
+
+Remove an item from a specific area:
+
+```bash
+/saveitem removearea <area> <item>
+```
+
+Example:
+```bash
+/saveitem removearea treasure_area common_coin
+```
+
+The item is removed from the area but remains saved globally.
+
+### Delete Saved Item
+
+Permanently delete a saved item:
+
+```bash
+/saveitem delete <item>
+```
+
+Example:
+```bash
+/saveitem delete old_item
+```
+
+<Warning>
+Deleting a saved item removes it from ALL areas that use it. The rain will simply skip spawning that item if it's been deleted.
+</Warning>
+
+## Listing Items
+
+### List All Saved Items
+
+```bash
+/saveitem list
+```
+
+Displays:
+- Item internal name
+- Display name (if it has one)
+- Stack size
+
+Example output:
+```
+Saved Items (5):
+- legendary_sword (§6Legendary Blade x1)
+- diamond_stack (DIAMOND x64)
+- healing_potion (§dSuper Healing x1)
+- common_coin (§eCoin x1)
+- rare_gem (§bRare Gem x1)
+```
+
+### View Area's Items
+
+See which items are assigned to an area:
+
+```bash
+/rainarea info <area>
+```
+
+Look for the "Saved Items" line showing the count.
+
+## Complete Workflow Example
+
+Setting up a complete treasure rain with multiple items:
+
+<Steps>
+  <Step title="Create and configure the area">
+    ```bash
+    /rainarea create treasure_drop
+    /rainarea config treasure_drop itemsperblock 3
+    /rainarea config treasure_drop timer 600
+    /rainarea config treasure_drop rainpersecond 30
+    ```
+  </Step>
+
+  <Step title="Save all items">
+    ```bash
+    # Hold each item in your hand and save it
+    /saveitem gold_coin
+    /saveitem silver_coin
+    /saveitem rare_diamond
+    /saveitem legendary_artifact
+    /saveitem epic_weapon
+    ```
+  </Step>
+
+  <Step title="Add items with probabilities">
+    ```bash
+    /saveitem add treasure_drop gold_coin 1.0
+    /saveitem add treasure_drop silver_coin 0.8
+    /saveitem add treasure_drop rare_diamond 0.3
+    /saveitem add treasure_drop legendary_artifact 0.1
+    /saveitem add treasure_drop epic_weapon 0.05
+    ```
+  </Step>
+
+  <Step title="Test the rain">
+    ```bash
+    /rainarea start treasure_drop
+    ```
+    
+    Watch the items rain down with the configured probabilities.
+  </Step>
+</Steps>
+
+## Advanced Techniques
+
+### Creating Loot Tiers
+
+Organize items into tiers with appropriate probabilities:
+
+```bash
+# Tier 1 - Common (70-100%)
+/saveitem add rewards common_1 1.0
+/saveitem add rewards common_2 0.9
+/saveitem add rewards common_3 0.8
+
+# Tier 2 - Uncommon (30-50%)
+/saveitem add rewards uncommon_1 0.5
+/saveitem add rewards uncommon_2 0.4
+
+# Tier 3 - Rare (10-20%)
+/saveitem add rewards rare_1 0.2
+/saveitem add rewards rare_2 0.15
+
+# Tier 4 - Epic (3-5%)
+/saveitem add rewards epic_1 0.05
+/saveitem add rewards epic_2 0.03
+
+# Tier 5 - Legendary (1%)
+/saveitem add rewards legendary 0.01
+```
+
+### Single Item Type
+
+Rain only one type of item:
+
+```bash
+/saveitem save emerald_stack
+/saveitem add emerald_rain emerald_stack 1.0
+/rainarea config emerald_rain itemsperblock 10
+```
+
+### Mixed Item Types
+
+Combine different item categories:
+
+```bash
+# Weapons
+/saveitem add arena_rewards sword 0.3
+/saveitem add arena_rewards bow 0.3
+
+# Armor
+/saveitem add arena_rewards helmet 0.25
+/saveitem add arena_rewards chestplate 0.25
+
+# Consumables
+/saveitem add arena_rewards potion 0.5
+/saveitem add arena_rewards food 0.6
+
+# Currency
+/saveitem add arena_rewards tokens 1.0
+```
+
+## NBT Data Preservation
+
+All NBT data is fully preserved when saving items:
+
+- **Enchantments**: All levels and types
+- **Custom names**: Color codes and formatting
+- **Lore**: Multiple lines with formatting
+- **Attributes**: Damage, speed, armor, etc.
+- **Durability**: Exact damage value
+- **Potion effects**: Type, duration, amplifier
+- **Book pages**: Written book content
+- **Skull textures**: Player heads and custom textures
+- **Banner patterns**: Complete pattern data
+- **Custom model data**: For resource packs
+
+<Note>
+This means you can save items from custom plugins or datapacks, and they will rain down exactly as saved.
+</Note>
+
+## Troubleshooting
+
+### "No item in hand" Error
+
+Make sure you're holding the item in your main hand (selected hotbar slot), not your offhand.
+
+### "Item already exists" Error
+
+Delete the existing item first:
+```bash
+/saveitem delete <name>
+```
+
+Or choose a different name for the new item.
+
+### "Item not found" Error
+
+The item name doesn't exist in saved items. Check the list:
+```bash
+/saveitem list
+```
+
+### "Area not found" Error
+
+The area name is incorrect or doesn't exist. Verify with:
+```bash
+/rainarea list
+```
+
+### "Invalid value" Error (Probability)
+
+Probability must be between 0.0 and 1.0:
+- ✅ Valid: `0.5`, `1.0`, `0.01`, `0.999`
+- ❌ Invalid: `1.5`, `50`, `-0.1`, `2.0`
+
+## Next Steps
+
+- [Learn about starting and stopping rain](/api/commands/rainarea)
+- [Configure area properties](/guides/configuring-areas)
+- [Set up permissions for players](/guides/permissions)

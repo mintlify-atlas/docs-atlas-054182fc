@@ -1,0 +1,476 @@
+---
+title: Permissions Setup
+description: Complete guide to RainTools permissions and permission plugin configuration
+---
+
+## Overview
+
+RainTools uses a hierarchical permission system that allows fine-grained control over who can create, delete, and manage rain areas and items.
+
+## Permission Nodes
+
+### raintools.area.create
+
+Allows creating new rain areas.
+
+- **Default**: `op`
+- **Used by**: `/rainarea create`
+
+**Use case**: Grant to trusted players or builders who need to set up rain areas.
+
+```yaml
+# LuckPerms example
+/lp group builder permission set raintools.area.create true
+```
+
+### raintools.area.delete
+
+Allows deleting existing rain areas.
+
+- **Default**: `op`
+- **Used by**: `/rainarea delete`, `/rainarea remove`
+
+**Use case**: Grant to administrators who can remove areas.
+
+```yaml
+# LuckPerms example
+/lp group admin permission set raintools.area.delete true
+```
+
+<Warning>
+Deleting areas is permanent and cannot be undone. Only grant this permission to trusted administrators.
+</Warning>
+
+### raintools.area.manage
+
+Allows managing areas (starting, stopping, configuring, and viewing information).
+
+- **Default**: `op`
+- **Used by**: `/rainarea start`, `/rainarea stop`, `/rainarea list`, `/rainarea info`, `/rainarea config`, `/rainarea reload`
+- **Child permissions**: Includes `raintools.area.create` and `raintools.area.delete`
+
+**Use case**: Grant to moderators and administrators who need full control over rain areas.
+
+```yaml
+# LuckPerms example
+/lp group moderator permission set raintools.area.manage true
+```
+
+<Note>
+The `raintools.area.manage` permission is a parent permission that automatically grants both `raintools.area.create` and `raintools.area.delete`.
+</Note>
+
+### raintools.item.save
+
+Allows saving, deleting, and managing items.
+
+- **Default**: `op`
+- **Used by**: `/saveitem save`, `/saveitem list`, `/saveitem delete`, `/saveitem add`, `/saveitem removearea`
+
+**Use case**: Grant to administrators and event coordinators who set up item configurations.
+
+```yaml
+# LuckPerms example
+/lp group eventcoord permission set raintools.item.save true
+```
+
+## Permission Hierarchy
+
+```
+raintools.area.manage (Full control)
+├── raintools.area.create (Create areas)
+└── raintools.area.delete (Delete areas)
+
+raintools.item.save (Item management)
+```
+
+## Configuration Examples
+
+### LuckPerms
+
+LuckPerms is the recommended permission plugin for modern Minecraft servers.
+
+<Tabs>
+  <Tab title="Admin Setup">
+    Grant full access to administrators:
+    
+    ```bash
+    # Grant all permissions
+    /lp group admin permission set raintools.area.manage true
+    /lp group admin permission set raintools.item.save true
+    ```
+    
+    This allows admins to:
+    - Create and delete areas
+    - Start, stop, and configure areas
+    - Save and manage items
+    - View all information
+  </Tab>
+
+  <Tab title="Moderator Setup">
+    Grant area management without item control:
+    
+    ```bash
+    # Grant area management only
+    /lp group moderator permission set raintools.area.manage true
+    ```
+    
+    Moderators can manage areas but cannot modify saved items.
+  </Tab>
+
+  <Tab title="Builder Setup">
+    Grant area creation without deletion:
+    
+    ```bash
+    # Grant create permission only
+    /lp group builder permission set raintools.area.create true
+    ```
+    
+    Builders can create areas but cannot delete them or modify items.
+  </Tab>
+
+  <Tab title="Event Coordinator">
+    Grant item management for event setup:
+    
+    ```bash
+    # Grant item management
+    /lp group eventcoord permission set raintools.item.save true
+    
+    # Optionally allow starting/stopping
+    /lp group eventcoord permission set raintools.area.manage true
+    ```
+  </Tab>
+
+  <Tab title="Individual Player">
+    Grant permissions to a specific player:
+    
+    ```bash
+    # Grant to player "Steve"
+    /lp user Steve permission set raintools.area.create true
+    /lp user Steve permission set raintools.item.save true
+    ```
+  </Tab>
+</Tabs>
+
+### PermissionsEx (PEX)
+
+<Tabs>
+  <Tab title="Admin Group">
+    ```bash
+    /pex group admin add raintools.area.manage
+    /pex group admin add raintools.item.save
+    ```
+  </Tab>
+
+  <Tab title="Moderator Group">
+    ```bash
+    /pex group moderator add raintools.area.manage
+    ```
+  </Tab>
+
+  <Tab title="Builder Group">
+    ```bash
+    /pex group builder add raintools.area.create
+    ```
+  </Tab>
+
+  <Tab title="Specific Player">
+    ```bash
+    /pex user PlayerName add raintools.area.create
+    ```
+  </Tab>
+</Tabs>
+
+### GroupManager
+
+<Tabs>
+  <Tab title="Admin Group">
+    ```bash
+    /manuaddp admin raintools.area.manage
+    /manuaddp admin raintools.item.save
+    ```
+  </Tab>
+
+  <Tab title="Moderator Group">
+    ```bash
+    /manuaddp moderator raintools.area.manage
+    ```
+  </Tab>
+
+  <Tab title="Builder Group">
+    ```bash
+    /manuaddp builder raintools.area.create
+    ```
+  </Tab>
+
+  <Tab title="Specific Player">
+    ```bash
+    /manuaddv PlayerName raintools.area.create
+    ```
+  </Tab>
+</Tabs>
+
+### bPermissions
+
+<Tabs>
+  <Tab title="Admin Group">
+    ```bash
+    /permissions group admin add raintools.area.manage
+    /permissions group admin add raintools.item.save
+    ```
+  </Tab>
+
+  <Tab title="Moderator Group">
+    ```bash
+    /permissions group moderator add raintools.area.manage
+    ```
+  </Tab>
+
+  <Tab title="Specific Player">
+    ```bash
+    /permissions player PlayerName add raintools.area.create
+    ```
+  </Tab>
+</Tabs>
+
+## Configuration File Setup
+
+If your permission plugin uses YAML configuration files, add permissions like this:
+
+### LuckPerms (editor)
+
+Use the web editor:
+
+```bash
+/lp editor
+```
+
+Then add the permissions in the web interface.
+
+### PermissionsEx (permissions.yml)
+
+```yaml
+groups:
+  admin:
+    permissions:
+      - raintools.area.manage
+      - raintools.item.save
+  moderator:
+    permissions:
+      - raintools.area.manage
+  builder:
+    permissions:
+      - raintools.area.create
+```
+
+### GroupManager (groups.yml)
+
+```yaml
+groups:
+  admin:
+    permissions:
+      - raintools.area.manage
+      - raintools.item.save
+  moderator:
+    permissions:
+      - raintools.area.manage
+  builder:
+    permissions:
+      - raintools.area.create
+```
+
+## Common Permission Patterns
+
+### Full Administrator
+
+Complete control over all plugin features:
+
+```bash
+raintools.area.manage
+raintools.item.save
+```
+
+### Event Manager
+
+Can set up and run events:
+
+```bash
+raintools.area.manage
+raintools.item.save
+```
+
+### Area Manager
+
+Can manage areas but not items:
+
+```bash
+raintools.area.manage
+```
+
+### Area Creator
+
+Can only create areas:
+
+```bash
+raintools.area.create
+```
+
+### View Only
+
+Can view information but not modify:
+
+```bash
+raintools.area.manage
+```
+
+<Note>
+With only `raintools.area.manage`, players can view info and lists, but should not be able to start/stop/config without proper checks. However, the current implementation allows all these actions with this permission.
+</Note>
+
+## Permission Use Cases
+
+<Tabs>
+  <Tab title="Small Server">
+    Simple setup with ops and players:
+    
+    - **Operators**: Have all permissions by default
+    - **Players**: No permissions
+    
+    No additional configuration needed - ops can do everything.
+  </Tab>
+
+  <Tab title="Medium Server">
+    Separate staff roles:
+    
+    - **Admins**: `raintools.area.manage`, `raintools.item.save`
+    - **Moderators**: `raintools.area.manage`
+    - **Builders**: `raintools.area.create`
+    - **Players**: No permissions
+    
+    ```bash
+    /lp group admin permission set raintools.area.manage true
+    /lp group admin permission set raintools.item.save true
+    /lp group moderator permission set raintools.area.manage true
+    /lp group builder permission set raintools.area.create true
+    ```
+  </Tab>
+
+  <Tab title="Large Server">
+    Detailed role separation:
+    
+    - **Owner**: All permissions
+    - **Admins**: `raintools.area.manage`, `raintools.item.save`
+    - **Senior Mods**: `raintools.area.manage`
+    - **Mods**: `raintools.area.create`
+    - **Event Coordinators**: `raintools.item.save`, `raintools.area.manage`
+    - **Builders**: `raintools.area.create`
+    - **Players**: No permissions
+  </Tab>
+
+  <Tab title="Event Server">
+    Focus on event management:
+    
+    - **Event Admins**: All permissions
+    - **Event Hosts**: `raintools.area.manage`, `raintools.item.save`
+    - **Event Helpers**: `raintools.area.manage` (start/stop only)
+    - **Participants**: No permissions
+  </Tab>
+</Tabs>
+
+## Console Access
+
+The console always has all permissions and can execute any command:
+
+```bash
+rainarea create console_area
+rainarea config console_area itemsperblock 5
+saveitem add console_area test_item 1.0
+```
+
+<Note>
+Commands that require a player (like `/saveitem save` which needs an item in hand) cannot be run from console.
+</Note>
+
+## Testing Permissions
+
+Verify permissions are set correctly:
+
+<Steps>
+  <Step title="Check player permissions">
+    ```bash
+    # LuckPerms
+    /lp user PlayerName info
+    
+    # PermissionsEx
+    /pex user PlayerName
+    ```
+  </Step>
+
+  <Step title="Test as the player">
+    Log in as the player and try the commands. Watch for "no permission" messages.
+  </Step>
+
+  <Step title="Check permission inheritance">
+    ```bash
+    # LuckPerms
+    /lp user PlayerName permission check raintools.area.create
+    ```
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### "No permission" Message
+
+Player doesn't have the required permission node:
+
+1. Verify the permission is set: `/lp user PlayerName info`
+2. Check group inheritance: `/lp group GroupName info`
+3. Reload permissions: `/lp reloadconfig`
+4. Check plugin load order in console
+
+### Permissions Not Working
+
+1. Verify RainTools is loaded: `/plugins`
+2. Check permission plugin is installed: `/plugins`
+3. Restart the server after permission changes
+4. Check for permission plugin errors in console
+
+### Operator Override
+
+Operators bypass permission checks by default. To test permissions:
+
+1. Deop the player: `/deop PlayerName`
+2. Test the permissions
+3. Reop when done: `/op PlayerName`
+
+### Parent Permission Not Working
+
+If `raintools.area.manage` doesn't grant child permissions:
+
+1. Manually grant child permissions:
+   ```bash
+   /lp group GroupName permission set raintools.area.create true
+   /lp group GroupName permission set raintools.area.delete true
+   ```
+2. Check your permission plugin supports child permissions
+3. Reload the plugin configuration
+
+## Security Best Practices
+
+<Warning>
+Follow these security guidelines:
+
+1. **Limit delete permissions**: Only trusted admins should have `raintools.area.delete`
+2. **Restrict item management**: `raintools.item.save` allows saving any item including custom/modded items
+3. **Review area configurations**: Areas with high `itemsperblock` can impact performance
+4. **Monitor area creation**: Players with create permissions can create many areas
+5. **Regular audits**: Periodically review who has permissions
+</Warning>
+
+## Next Steps
+
+- [Create your first rain area](/guides/creating-areas)
+- [Configure area properties](/guides/configuring-areas)
+- [Set up items to rain](/guides/managing-items)
+- [View all available commands](/api/commands/rainarea)

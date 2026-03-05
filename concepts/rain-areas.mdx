@@ -1,0 +1,209 @@
+---
+title: Rain Areas
+description: Understanding rain areas and how they work in RainTools
+---
+
+Rain areas are defined 3D regions where items, entities, or experience orbs can spawn automatically. Each area is a cuboid volume defined by two corner positions.
+
+## What is a Rain Area?
+
+A rain area (`RainArea.java:10`) is a rectangular region in your Minecraft world where the plugin spawns items and entities at configurable intervals. Think of it as an invisible box where "rain" falls from random positions within the volume.
+
+## Core Properties
+
+Each rain area has several configurable properties:
+
+### Location & Boundaries
+
+```java
+private Location pos1;
+private Location pos2;
+private World world;
+```
+
+- **Position 1 & 2**: Two corner points that define the area's boundaries (`RainArea.java:13-14`)
+- **World**: The Minecraft world where the area exists (`RainArea.java:15`)
+- Both positions must be in the same world (`AreaManager.java:89-91`)
+
+### Rain Configuration
+
+```java
+private boolean enabled;
+private boolean oneTime;
+private int itemsPerBlock;
+private long timerTicks;
+private int rainPerSecond;
+```
+
+**Key settings:**
+- `enabled`: Whether the area is active (`RainArea.java:18`)
+- `oneTime`: If true, rain stops after 5 seconds (`RainArea.java:19`)
+- `itemsPerBlock`: Number of items spawned per block location (`RainArea.java:20`)
+- `timerTicks`: Delay between rain cycles in ticks (20 ticks = 1 second) (`RainArea.java:21`)
+- `rainPerSecond`: How many spawn attempts occur per cycle (`RainArea.java:22`)
+
+<Info>
+**Default values** (`RainArea.java:42-46`):
+- Enabled: `true`
+- One-time: `false`
+- Items per block: `1`
+- Timer: `20 ticks` (1 second)
+- Rain per second: `1`
+</Info>
+
+### What Can Rain?
+
+Rain areas support three types of spawnable content:
+
+```java
+private Map<String, Double> savedItems;      // item name -> probability
+private Map<EntityType, Double> entities;    // entity type -> probability
+private int experienceOrbs;
+```
+
+1. **Saved Items** (`RainArea.java:25`): Named items with probability weights
+2. **Entities** (`RainArea.java:26`): Mobs or other entities with spawn chances
+3. **Experience Orbs** (`RainArea.java:27-29`): XP orbs with configurable amount ranges
+
+## One-Time vs Repeating Areas
+
+### Repeating Areas (default)
+
+When `oneTime` is `false`, the area continues spawning indefinitely:
+
+```java
+BukkitTask task = new BukkitRunnable() {
+    @Override
+    public void run() {
+        if (!area.isEnabled() || !area.isRaining()) {
+            stopRain(area);
+            return;
+        }
+        performRain(area);
+    }
+}.runTaskTimer(plugin, 0L, area.getTimerTicks());
+```
+*From `RainManager.java:90-100`*
+
+Rain continues until manually stopped or the area is disabled.
+
+### One-Time Areas
+
+When `oneTime` is `true`, rain automatically stops after 5 seconds (100 ticks):
+
+```java
+if (ticksElapsed < maxTicks) {
+    performRain(area);
+    ticksElapsed += area.getTimerTicks();
+} else {
+    // Han pasado 5 segundos, detener la lluvia
+    stopRain(area);
+}
+```
+*From `RainManager.java:77-83`*
+
+Once a one-time area has rained, `hasRainedOnce` is set to `true` (`RainManager.java:63`) and it won't rain again until reset.
+
+## Automatic Cleanup
+
+All spawned entities are automatically removed after 20 minutes to prevent server lag:
+
+```java
+// Programar limpieza automática después de 20 minutos
+new BukkitRunnable() {
+    @Override
+    public void run() {
+        if (area.isRaining()) {
+            cleanupRainEntities(area.getName());
+        }
+    }
+}.runTaskLater(plugin, 24000L); // 20 minutos = 24000 ticks
+```
+*From `RainManager.java:51-59`*
+
+<Warning>
+Entities spawned by rain areas are tracked and will be removed after 20 minutes, even if players are interacting with them.
+</Warning>
+
+## Volume Calculation
+
+The area's volume determines how large the spawn region is:
+
+```java
+public int getVolume() {
+    int width = Math.abs(pos2.getBlockX() - pos1.getBlockX()) + 1;
+    int height = Math.abs(pos2.getBlockY() - pos1.getBlockY()) + 1;
+    int depth = Math.abs(pos2.getBlockZ() - pos1.getBlockZ()) + 1;
+    return width * height * depth;
+}
+```
+*From `RainArea.java:123-128`*
+
+**Example:**
+- Position 1: `(0, 64, 0)`
+- Position 2: `(10, 74, 10)`
+- Width: `11 blocks`
+- Height: `11 blocks`
+- Depth: `11 blocks`
+- **Volume: `1,331 blocks`**
+
+The volume is displayed when creating an area (`AreaManager.java:100-102`).
+
+## Location Checking
+
+To determine if a location is inside an area:
+
+```java
+public boolean isLocationInArea(Location loc) {
+    if (loc.getWorld() != world) return false;
+    
+    int minX = Math.min(pos1.getBlockX(), pos2.getBlockX());
+    int maxX = Math.max(pos1.getBlockX(), pos2.getBlockX());
+    int minY = Math.min(pos1.getBlockY(), pos2.getBlockY());
+    int maxY = Math.max(pos1.getBlockY(), pos2.getBlockY());
+    int minZ = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
+    int maxZ = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
+    
+    return loc.getBlockX() >= minX && loc.getBlockX() <= maxX &&
+           loc.getBlockY() >= minY && loc.getBlockY() <= maxY &&
+           loc.getBlockZ() >= minZ && loc.getBlockZ() <= maxZ;
+}
+```
+*From `RainArea.java:108-121`*
+
+This method is used to find which area contains a specific location (`AreaManager.java:135-142`).
+
+## Rain Spawning
+
+When rain is active, random locations within the area are selected:
+
+```java
+private Location getRandomLocationInArea(RainArea area) {
+    int minX = Math.min(area.getPos1().getBlockX(), area.getPos2().getBlockX());
+    int maxX = Math.max(area.getPos1().getBlockX(), area.getPos2().getBlockX());
+    int minY = Math.min(area.getPos1().getBlockY(), area.getPos2().getBlockY());
+    int maxY = Math.max(area.getPos1().getBlockY(), area.getPos2().getBlockY());
+    int minZ = Math.min(area.getPos1().getBlockZ(), area.getPos2().getBlockZ());
+    int maxZ = Math.max(area.getPos1().getBlockZ(), area.getPos2().getBlockZ());
+    
+    int randomX = minX + random.nextInt(maxX - minX + 1);
+    int randomY = minY + random.nextInt(maxY - minY + 1);
+    int randomZ = minZ + random.nextInt(maxZ - minZ + 1);
+    
+    return new Location(area.getWorld(), randomX, randomY, randomZ);
+}
+```
+*From `RainManager.java:178-194`*
+
+For each rain cycle, `rainPerSecond` spawn attempts are made at random positions within the volume (`RainManager.java:156-176`).
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Saved Items" icon="box" href="/concepts/saved-items">
+    Learn how items are stored and spawned with probability weights
+  </Card>
+  <Card title="Area Selection" icon="hand-pointer" href="/concepts/area-selection">
+    How to select area boundaries using the selection tool
+  </Card>
+</CardGroup>

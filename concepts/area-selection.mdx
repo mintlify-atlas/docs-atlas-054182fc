@@ -1,0 +1,353 @@
+---
+title: Area Selection
+description: How to select and define rain area boundaries using the selection tool
+---
+
+Area selection uses a two-position system to define cuboid regions. Players use a selection tool to mark opposite corners of the desired rain area.
+
+## The Selection Tool
+
+By default, the selection tool is a **Diamond Axe**:
+
+```java
+// Verificar que el jugador tenga un hacha de diamante en la mano
+if (item == null || item.getType() != Material.DIAMOND_AXE) {
+    return;
+}
+```
+*From `AreaSelectionListener.java:26-28`*
+
+<Info>
+You must have the `raintools.area.create` permission to use the selection tool.
+</Info>
+
+### Permission Check
+
+```java
+// Verificar permisos
+if (!player.hasPermission("raintools.area.create")) {
+    return;
+}
+```
+*From `AreaSelectionListener.java:31-33`*
+
+Without this permission, the Diamond Axe functions normally and won't trigger area selection.
+
+## Two-Position System
+
+Area selection stores two positions per player:
+
+```java
+private final Map<UUID, Location> firstPositions;
+private final Map<UUID, Location> secondPositions;
+```
+*From `AreaManager.java:16-17`*
+
+These maps track each player's current selection using their UUID as the key.
+
+### First Position (Left Click)
+
+Left-clicking a block with the Diamond Axe sets the first position:
+
+```java
+if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+    // Clic izquierdo = primera posición
+    plugin.getAreaManager().setFirstPosition(player, event.getClickedBlock().getLocation());
+}
+```
+*From `AreaSelectionListener.java:46-49`*
+
+The `setFirstPosition` method stores the location and notifies the player:
+
+```java
+public void setFirstPosition(Player player, Location location) {
+    firstPositions.put(player.getUniqueId(), location);
+    player.sendMessage("§6[Rain Tools] §ePrimera posición seleccionada: §f" + 
+                      location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ());
+}
+```
+*From `AreaManager.java:34-38`*
+
+### Second Position (Right Click)
+
+Right-clicking a block with the Diamond Axe sets the second position:
+
+```java
+else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+    // Clic derecho = segunda posición
+    plugin.getAreaManager().setSecondPosition(player, event.getClickedBlock().getLocation());
+}
+```
+*From `AreaSelectionListener.java:49-52`*
+
+Setting the second position automatically calculates the volume:
+
+```java
+public void setSecondPosition(Player player, Location location) {
+    secondPositions.put(player.getUniqueId(), location);
+    player.sendMessage("§6[Rain Tools] §eSegunda posición seleccionada: §f" + 
+                      location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ());
+    
+    // Si ambas posiciones están seleccionadas, mostrar información del área
+    Location pos1 = firstPositions.get(player.getUniqueId());
+    if (pos1 != null) {
+        int volume = calculateVolume(pos1, location);
+        player.sendMessage("§6[Rain Tools] §eÁrea seleccionada: §f" + volume + " bloques");
+        player.sendMessage("§6[Rain Tools] §eUsa §f/rainarea create <nombre> §epara crear el área.");
+    }
+}
+```
+*From `AreaManager.java:40-52`*
+
+## Event Cancellation
+
+The selection listener cancels the block interaction event to prevent breaking or placing blocks:
+
+```java
+event.setCancelled(true); // Cancelar el evento para evitar romper/colocar bloques
+```
+*From `AreaSelectionListener.java:44`*
+
+This ensures that:
+- Left-clicking doesn't break blocks
+- Right-clicking doesn't place blocks or trigger block interactions
+
+## Volume Calculation
+
+When both positions are set, the volume is calculated:
+
+```java
+private int calculateVolume(Location pos1, Location pos2) {
+    int width = Math.abs(pos2.getBlockX() - pos1.getBlockX()) + 1;
+    int height = Math.abs(pos2.getBlockY() - pos1.getBlockY()) + 1;
+    int depth = Math.abs(pos2.getBlockZ() - pos1.getBlockZ()) + 1;
+    return width * height * depth;
+}
+```
+*From `AreaManager.java:149-154`*
+
+### Why +1?
+
+The `+1` ensures both boundary blocks are included:
+
+<Accordion title="Example: Positions at X=0 and X=10">
+
+**Without +1:**
+```
+width = Math.abs(10 - 0) = 10 blocks
+```
+This would only count blocks 1-10, excluding the block at position 0.
+
+**With +1:**
+```
+width = Math.abs(10 - 0) + 1 = 11 blocks
+```
+This correctly counts all blocks from 0 to 10 inclusive.
+
+</Accordion>
+
+### Volume Display Example
+
+**Selection:**
+- Position 1: `(100, 64, 200)`
+- Position 2: `(110, 80, 215)`
+
+**Calculation:**
+- Width: `|110 - 100| + 1 = 11`
+- Height: `|80 - 64| + 1 = 17`
+- Depth: `|215 - 200| + 1 = 16`
+- **Volume: `11 × 17 × 16 = 2,992 blocks`**
+
+**Player sees:**
+```
+§6[Rain Tools] §eSegunda posición seleccionada: §f110, 80, 215
+§6[Rain Tools] §eÁrea seleccionada: §f2992 bloques
+§6[Rain Tools] §eUsa §f/rainarea create <nombre> §epara crear el área.
+```
+
+## World Restrictions
+
+Both positions must be in the same world:
+
+```java
+// Verificar que ambas posiciones estén en el mismo mundo
+if (!pos1.getWorld().equals(pos2.getWorld())) {
+    player.sendMessage("§c[Rain Tools] Ambas posiciones deben estar en el mismo mundo.");
+    return false;
+}
+```
+*From `AreaManager.java:89-92`*
+
+<Warning>
+You cannot create a rain area that spans multiple worlds. If you select positions in different worlds (e.g., Overworld and Nether), creation will fail.
+</Warning>
+
+## Checking Selection Status
+
+Before creating an area, the plugin verifies both positions exist:
+
+```java
+public boolean hasCompleteSelection(Player player) {
+    UUID playerId = player.getUniqueId();
+    return firstPositions.containsKey(playerId) && secondPositions.containsKey(playerId);
+}
+```
+*From `AreaManager.java:62-65`*
+
+This method is called when attempting to create an area:
+
+```java
+public boolean createArea(String name, Player player) {
+    if (!hasCompleteSelection(player)) {
+        player.sendMessage("§c[Rain Tools] Debes seleccionar dos posiciones primero.");
+        return false;
+    }
+    // ...
+}
+```
+*From `AreaManager.java:74-78`*
+
+## Clearing Selection
+
+Players can clear their current selection:
+
+```java
+public void clearSelection(Player player) {
+    UUID playerId = player.getUniqueId();
+    firstPositions.remove(playerId);
+    secondPositions.remove(playerId);
+    player.sendMessage("§6[Rain Tools] §eSelección borrada.");
+}
+```
+*From `AreaManager.java:67-72`*
+
+Selections are also automatically cleared after successfully creating an area:
+
+```java
+// Limpiar selección
+clearSelection(player);
+```
+*From `AreaManager.java:105`*
+
+## Creating the Area
+
+Once both positions are selected, use the command to create the area:
+
+```java
+public boolean createArea(String name, Player player) {
+    if (!hasCompleteSelection(player)) {
+        player.sendMessage("§c[Rain Tools] Debes seleccionar dos posiciones primero.");
+        return false;
+    }
+    
+    if (areas.containsKey(name)) {
+        player.sendMessage("§c[Rain Tools] Ya existe un área con ese nombre.");
+        return false;
+    }
+    
+    Location pos1 = getFirstPosition(player);
+    Location pos2 = getSecondPosition(player);
+    
+    // Verificar que ambas posiciones estén en el mismo mundo
+    if (!pos1.getWorld().equals(pos2.getWorld())) {
+        player.sendMessage("§c[Rain Tools] Ambas posiciones deben estar en el mismo mundo.");
+        return false;
+    }
+    
+    RainArea area = new RainArea(name, pos1, pos2);
+    areas.put(name, area);
+    
+    // Guardar en la configuración
+    plugin.getConfigManager().saveArea(area);
+    
+    int volume = area.getVolume();
+    player.sendMessage("§a[Rain Tools] Área '" + name + "' creada exitosamente.");
+    player.sendMessage("§a[Rain Tools] Volumen: " + volume + " bloques.");
+    
+    // Limpiar selección
+    clearSelection(player);
+    
+    return true;
+}
+```
+*From `AreaManager.java:74-108`*
+
+### Creation Validation
+
+The creation process validates:
+
+1. **Complete selection**: Both positions must be set
+2. **Unique name**: Area name must not already exist
+3. **Same world**: Both positions must be in the same world
+
+If any validation fails, the area is not created and the player receives an error message.
+
+## Selection Flow Diagram
+
+<Steps>
+  <Step title="Equip Diamond Axe">
+    Hold a Diamond Axe in your main hand. Ensure you have the `raintools.area.create` permission.
+  </Step>
+  
+  <Step title="Left-Click First Corner">
+    Left-click the first corner block of your desired area. You'll see:
+    ```
+    §6[Rain Tools] §ePrimera posición seleccionada: §f<x, y, z>
+    ```
+  </Step>
+  
+  <Step title="Right-Click Second Corner">
+    Right-click the opposite corner block. You'll see:
+    ```
+    §6[Rain Tools] §eSegunda posición seleccionada: §f<x, y, z>
+    §6[Rain Tools] §eÁrea seleccionada: §f<volume> bloques
+    §6[Rain Tools] §eUsa §f/rainarea create <nombre> §epara crear el área.
+    ```
+  </Step>
+  
+  <Step title="Create the Area">
+    Run `/rainarea create <name>` to finalize the area. Your selection is automatically cleared.
+  </Step>
+</Steps>
+
+## Retrieving Positions
+
+The manager provides methods to retrieve stored positions:
+
+```java
+public Location getFirstPosition(Player player) {
+    return firstPositions.get(player.getUniqueId());
+}
+
+public Location getSecondPosition(Player player) {
+    return secondPositions.get(player.getUniqueId());
+}
+```
+*From `AreaManager.java:54-60`*
+
+These methods return `null` if no position has been set for that player.
+
+## Per-Player Selection
+
+Each player maintains their own independent selection:
+
+```java
+private final Map<UUID, Location> firstPositions;
+private final Map<UUID, Location> secondPositions;
+```
+
+Using UUID as the key ensures:
+- Multiple players can select areas simultaneously
+- Selections persist even if the player changes their username
+- No conflicts between different players' selections
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Rain Areas" icon="cloud-rain" href="/concepts/rain-areas">
+    Learn what you can do with created rain areas
+  </Card>
+  <Card title="Area Commands" icon="terminal" href="/api/commands/rainarea">
+    Commands for managing created areas
+  </Card>
+</CardGroup>

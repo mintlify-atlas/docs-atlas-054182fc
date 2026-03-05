@@ -1,0 +1,115 @@
+---
+title: "Introduction"
+description: "Create customizable rain areas in Minecraft where items, experience orbs, and entities can fall"
+---
+
+## Welcome to RainTools
+
+RainTools is a powerful Minecraft plugin for Spigot/Paper servers that allows you to create custom rain areas where items, experience orbs, and entities can fall. Perfect for creating unique gameplay experiences, event areas, or reward zones.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get started with RainTools in minutes
+  </Card>
+  <Card title="Commands" icon="terminal" href="/api/commands/rainarea">
+    Explore all available commands
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/config-file">
+    Configure your rain areas
+  </Card>
+  <Card title="Java API" icon="code" href="/api/java/overview">
+    Integrate with your plugins
+  </Card>
+</CardGroup>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Custom Rain Areas" icon="cloud-rain" href="/concepts/rain-areas">
+    Define specific boundaries where items and entities will fall
+  </Card>
+  <Card title="Probability-Based Drops" icon="dice" href="/concepts/saved-items">
+    Configure items with customizable drop probabilities
+  </Card>
+  <Card title="Experience Orbs" icon="star" href="/guides/configuring-areas">
+    Add experience orbs with configurable amounts
+  </Card>
+  <Card title="One-Time or Repeating" icon="rotate" href="/configuration/area-properties">
+    Create single-use or continuous rain events
+  </Card>
+  <Card title="Auto Cleanup" icon="broom" href="/concepts/rain-areas">
+    Automatic entity cleanup after 20 minutes
+  </Card>
+  <Card title="Multi-Language" icon="language" href="/configuration/messages">
+    Support for English and Spanish
+  </Card>
+</CardGroup>
+
+## Requirements
+
+<Note>
+  RainTools requires Spigot/Paper 1.16.5 or higher and Java 8 or higher.
+</Note>
+
+## Quick Example
+
+Create a rain area where diamond blocks fall with 50% probability:
+
+<Steps>
+  <Step title="Select the area">
+    Use WorldEdit or the built-in selection tool to mark two corners
+    ```
+    Left-click first corner
+    Right-click second corner
+    ```
+  </Step>
+  <Step title="Create the rain area">
+    ```
+    /rainarea create diamond_rain
+    ```
+  </Step>
+  <Step title="Save the item">
+    Hold a diamond block and run:
+    ```
+    /saveitem diamond_block
+    ```
+  </Step>
+  <Step title="Add item to area">
+    ```
+    /saveitem add diamond_rain diamond_block 0.5
+    ```
+  </Step>
+  <Step title="Start the rain">
+    ```
+    /rainarea start diamond_rain
+    ```
+  </Step>
+</Steps>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install RainTools on your server
+  </Card>
+  <Card title="Creating Areas" icon="map-location-dot" href="/guides/creating-areas">
+    Learn how to create and manage rain areas
+  </Card>
+  <Card title="Permissions" icon="lock" href="/guides/permissions">
+    Set up permissions for your players
+  </Card>
+  <Card title="API Reference" icon="book" href="/api/java/overview">
+    Build custom integrations
+  </Card>
+</CardGroup>
+
+## Community & Support
+
+<CardGroup cols={2}>
+  <Card title="GitHub Repository" icon="github" href="https://github.com/dcatalaan/RainTools">
+    View source code and report issues
+  </Card>
+  <Card title="Releases" icon="tag" href="https://github.com/dcatalaan/RainTools/releases">
+    Download the latest version
+  </Card>
+</CardGroup>

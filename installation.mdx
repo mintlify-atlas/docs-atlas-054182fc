@@ -1,0 +1,198 @@
+---
+title: Installation
+description: Install RainTools on your Spigot or Paper server
+---
+
+## System Requirements
+
+Before installing RainTools, ensure your server meets these requirements:
+
+<CardGroup cols={2}>
+  <Card title="Server Software" icon="server">
+    Spigot or Paper 1.16.5 or higher
+  </Card>
+  <Card title="Java Version" icon="coffee">
+    Java 8 or higher
+  </Card>
+</CardGroup>
+
+<Note>
+  RainTools is built with Spigot API 1.16.5 and supports all newer versions. Paper servers are recommended for better performance.
+</Note>
+
+## Download RainTools
+
+Get the latest version of RainTools from the official GitHub releases page:
+
+<Card title="Download from GitHub" icon="download" href="https://github.com/dcatalaan/RainTools/releases">
+  Visit the releases page to download the latest RainTools JAR file
+</Card>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Download the JAR file">
+    Download the `RainTools-{version}.jar` file from the [GitHub Releases](https://github.com/dcatalaan/RainTools/releases) page.
+  </Step>
+
+  <Step title="Locate your plugins folder">
+    Navigate to your server directory and find the `plugins` folder:
+    
+    ```bash
+    cd /path/to/your/server
+    ls plugins/
+    ```
+  </Step>
+
+  <Step title="Copy the JAR file">
+    Place the downloaded `RainTools-{version}.jar` file into the `plugins` folder:
+    
+    ```bash
+    cp RainTools-{version}.jar plugins/
+    ```
+  </Step>
+
+  <Step title="Restart your server">
+    Restart your Minecraft server to load the plugin:
+    
+    <CodeGroup>
+    ```bash Linux/Mac
+    ./start.sh
+    # or
+    ./stop.sh && ./start.sh
+    ```
+    
+    ```batch Windows
+    start.bat
+    REM or
+    stop.bat && start.bat
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Verify installation">
+    Once the server has started, verify that RainTools is loaded by running:
+    
+    ```bash
+    /plugins
+    ```
+    
+    You should see `RainTools` in green in the plugins list.
+  </Step>
+</Steps>
+
+## Post-Installation Setup
+
+After installation, RainTools will create its configuration files automatically.
+
+### Configuration Files
+
+RainTools creates the following files in the `plugins/RainTools/` directory:
+
+```bash
+plugins/RainTools/
+├── config.yml          # Main configuration file
+├── areas/              # Saved rain areas
+├── items/              # Saved items
+└── language/           # Language files
+```
+
+### Default Configuration
+
+The default `config.yml` includes:
+
+```yaml config.yml
+# General settings
+general:
+  config-version: 1.0
+  language: "en"
+  debug: false
+
+# Default area settings
+areas:
+  default:
+    enabled: true
+    one-time: false
+    items-per-block: 1
+    timer-ticks: 20
+    rain-per-second: 1
+    experience-orbs: 1
+    min-exp: 1
+    max-exp: 5
+
+# Performance limits
+performance:
+  max-active-areas: 10
+  max-items-per-tick: 50
+  max-entities-per-tick: 20
+```
+
+<Note>
+  You can customize these settings to match your server's needs. Changes require a server restart or `/rainarea reload` to take effect.
+</Note>
+
+## Permissions Setup
+
+By default, all RainTools commands require operator status. To grant permissions to specific players or groups, add these permissions to your permission plugin:
+
+```yaml permissions.yml
+raintools.area.create    # Create rain areas
+raintools.area.delete    # Delete rain areas
+raintools.area.manage    # Manage areas (includes create and delete)
+raintools.item.save      # Save and manage items
+```
+
+<Warning>
+  The `raintools.area.manage` permission includes both `create` and `delete` permissions. Grant this carefully on production servers.
+</Warning>
+
+## Language Configuration
+
+RainTools supports multiple languages. To change the language, edit `config.yml`:
+
+```yaml config.yml
+general:
+  language: "en"  # Options: "en" (English), "es" (Spanish)
+```
+
+Then reload the plugin:
+
+```bash
+/rainarea reload
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Plugin not loading">
+    - Check that you're running Spigot or Paper 1.16.5 or higher
+    - Verify Java 8+ is installed: `java -version`
+    - Check the server console for error messages
+    - Ensure the JAR file is not corrupted (re-download if needed)
+  </Accordion>
+
+  <Accordion title="Commands not working">
+    - Verify you have the required permissions
+    - Check that the plugin is enabled: `/plugins`
+    - Review the console for permission errors
+    - Try reloading the plugin: `/rainarea reload`
+  </Accordion>
+
+  <Accordion title="Configuration not updating">
+    - Make sure you saved the config.yml file
+    - Reload the plugin: `/rainarea reload`
+    - Check for YAML syntax errors in the console
+    - Restart the server if reload doesn't work
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Create your first rain area in minutes
+  </Card>
+  <Card title="Commands Reference" icon="terminal" href="/api/commands/rainarea">
+    Learn all available commands and options
+  </Card>
+</CardGroup>

@@ -1,0 +1,331 @@
+---
+title: Saved Items
+description: Understanding how items are stored, serialized, and spawned in rain areas
+---
+
+Saved items are named item templates that preserve all properties including enchantments, custom names, lore, and NBT data. They can be assigned to rain areas with probability weights.
+
+## What is a Saved Item?
+
+A saved item (`SavedItem.java:17`) is a stored ItemStack template that can be spawned in rain areas. Each saved item has:
+
+- A unique name identifier
+- Complete item data (material, amount, metadata)
+- Full NBT preservation through serialization
+- All enchantments, custom names, and lore
+
+## Item Storage Structure
+
+```java
+private String name;
+private Material material;
+private int amount;
+private String displayName;
+private List<String> lore;
+private Map<String, Integer> enchantments;
+private String serializedItemStack;
+```
+*From `SavedItem.java:19-25`*
+
+<Accordion title="Property Details">
+
+**name** (`SavedItem.java:19`): Unique identifier used to reference this item
+
+**material** (`SavedItem.java:20`): The base Minecraft material type
+
+**amount** (`SavedItem.java:21`): Stack size (1-64 typically)
+
+**displayName** (`SavedItem.java:22`): Custom name shown in-game
+
+**lore** (`SavedItem.java:23`): List of lore lines displayed in item tooltip
+
+**enchantments** (`SavedItem.java:24`): Map of enchantment keys to levels
+
+**serializedItemStack** (`SavedItem.java:25`): Base64-encoded complete ItemStack with all NBT data
+
+</Accordion>
+
+## Creating a Saved Item
+
+When you save an item, the plugin captures all its properties:
+
+```java
+public SavedItem(String name, ItemStack itemStack) {
+    this.name = name;
+    this.material = itemStack.getType();
+    this.amount = itemStack.getAmount();
+    
+    ItemMeta meta = itemStack.getItemMeta();
+    if (meta != null) {
+        this.displayName = meta.getDisplayName();
+        this.lore = meta.getLore();
+        
+        // Convertir encantamientos a un formato serializable
+        this.enchantments = new HashMap<>();
+        for (Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
+            this.enchantments.put(entry.getKey().getKey().toString(), entry.getValue());
+        }
+    }
+    
+    // Serializar el ItemStack completo para preservar todos los NBT tags
+    this.serializedItemStack = itemStackToBase64(itemStack);
+}
+```
+*From `SavedItem.java:27-46`*
+
+### Why Dual Storage?
+
+The plugin stores item data in two ways:
+
+1. **Individual properties** (material, display name, enchantments): Easy to read and modify
+2. **Full serialization** (`serializedItemStack`): Preserves complex NBT data that might not be captured otherwise
+
+This ensures compatibility with custom items from other plugins that use advanced NBT tags.
+
+## NBT Data Preservation
+
+The serialization system uses Bukkit's built-in serialization:
+
+```java
+private String itemStackToBase64(ItemStack item) {
+    try {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
+        dataOutput.writeObject(item);
+        dataOutput.close();
+        return Base64.getEncoder().encodeToString(outputStream.toByteArray());
+    } catch (Exception e) {
+        return "";
+    }
+}
+```
+*From `SavedItem.java:99-109`*
+
+<Info>
+The Base64 encoding allows the complete item data to be stored as a string in configuration files without losing any information.
+</Info>
+
+### Deserialization
+
+When spawning the item, it's reconstructed from the serialized data:
+
+```java
+private ItemStack itemStackFromBase64(String data) throws Exception {
+    ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64.getDecoder().decode(data));
+    BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+    ItemStack item = (ItemStack) dataInput.readObject();
+    dataInput.close();
+    return item;
+}
+```
+*From `SavedItem.java:111-117`*
+
+## Converting to ItemStack
+
+When a saved item needs to be spawned in-game:
+
+```java
+public ItemStack toItemStack() {
+    try {
+        // Intentar deserializar desde la cadena serializada primero
+        if (serializedItemStack != null && !serializedItemStack.isEmpty()) {
+            return itemStackFromBase64(serializedItemStack);
+        }
+    } catch (Exception e) {
+        // Si falla, crear el item manualmente
+    }
+    
+    // Crear item manualmente como respaldo
+    ItemStack item = new ItemStack(material, amount);
+    ItemMeta meta = item.getItemMeta();
+    
+    if (meta != null) {
+        if (displayName != null && !displayName.isEmpty()) {
+            meta.setDisplayName(displayName);
+        }
+        if (lore != null && !lore.isEmpty()) {
+            meta.setLore(lore);
+        }
+        if (enchantments != null) {
+            for (Map.Entry<String, Integer> entry : enchantments.entrySet()) {
+                try {
+                    Enchantment enchantment = Enchantment.getByKey(org.bukkit.NamespacedKey.minecraft(entry.getKey()));
+                    if (enchantment != null) {
+                        meta.addEnchant(enchantment, entry.getValue(), true);
+                    }
+                } catch (Exception e) {
+                    // Ignorar encantamientos inválidos
+                }
+            }
+        }
+        item.setItemMeta(meta);
+    }
+    
+    return item;
+}
+```
+*From `SavedItem.java:60-97`*
+
+### Fallback System
+
+The `toItemStack()` method has a two-tier approach:
+
+1. **Primary**: Deserialize from Base64 (preserves all NBT)
+2. **Fallback**: Reconstruct manually from individual properties
+
+This ensures items can still be spawned even if serialization fails.
+
+<Warning>
+If deserialization fails, some advanced NBT tags from custom plugins may be lost. The fallback only preserves standard Bukkit properties.
+</Warning>
+
+## Probability System
+
+Saved items are assigned to rain areas with probability weights:
+
+```java
+private Map<String, Double> savedItems; // nombre del item -> probabilidad
+```
+*From `RainArea.java:25`*
+
+In the rain manager, items spawn based on their probability:
+
+```java
+private void spawnItems(RainArea area, Location location, List<Entity> areaEntities) {
+    Map<String, Double> savedItems = area.getSavedItems();
+    
+    for (Map.Entry<String, Double> entry : savedItems.entrySet()) {
+        String itemName = entry.getKey();
+        double probability = entry.getValue();
+        
+        if (random.nextDouble() <= probability) {
+            ItemStack itemToSpawn = plugin.getItemManager().getItemStack(itemName);
+            if (itemToSpawn != null) {
+                // Añadir dispersión aleatoria
+                double offsetX = (random.nextDouble() - 0.5) * 2.0;
+                double offsetZ = (random.nextDouble() - 0.5) * 2.0;
+                
+                Location itemLocation = location.clone().add(offsetX, 0, offsetZ);
+                
+                // Spawnear múltiples items si está configurado
+                for (int i = 0; i < area.getItemsPerBlock(); i++) {
+                    Item item = area.getWorld().dropItem(itemLocation, itemToSpawn.clone());
+                    areaEntities.add(item);
+                }
+            }
+        }
+    }
+}
+```
+*From `RainManager.java:228-252`*
+
+### How Probability Works
+
+<AccordionGroup>
+  <Accordion title="Probability: 1.0 (100%)">
+    The item spawns on every rain cycle.
+    
+    ```java
+    if (random.nextDouble() <= 1.0) // Always true
+    ```
+  </Accordion>
+  
+  <Accordion title="Probability: 0.5 (50%)">
+    The item has a 50% chance to spawn each cycle.
+    
+    ```java
+    if (random.nextDouble() <= 0.5) // 50% of the time
+    ```
+  </Accordion>
+  
+  <Accordion title="Probability: 0.1 (10%)">
+    The item has a 10% chance to spawn each cycle.
+    
+    ```java
+    if (random.nextDouble() <= 0.1) // 10% of the time
+    ```
+  </Accordion>
+  
+  <Accordion title="Probability: 0.01 (1%)">
+    Rare item - only 1% chance per cycle.
+    
+    ```java
+    if (random.nextDouble() <= 0.01) // 1% of the time
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Multiple Items Per Block
+
+The `itemsPerBlock` setting controls how many copies spawn:
+
+```java
+for (int i = 0; i < area.getItemsPerBlock(); i++) {
+    Item item = area.getWorld().dropItem(itemLocation, itemToSpawn.clone());
+    areaEntities.add(item);
+}
+```
+*From `RainManager.java:245-248`*
+
+**Example:**
+- Probability: `0.5` (50% chance)
+- Items per block: `3`
+- Result: When the item is selected, 3 copies spawn at once
+
+## Spawn Dispersion
+
+Items don't spawn at exact block centers:
+
+```java
+// Añadir dispersión aleatoria
+double offsetX = (random.nextDouble() - 0.5) * 2.0;
+double offsetZ = (random.nextDouble() - 0.5) * 2.0;
+
+Location itemLocation = location.clone().add(offsetX, 0, offsetZ);
+```
+*From `RainManager.java:238-242`*
+
+This creates a random offset of ±1 block on the X and Z axes, making the rain look more natural and spread out.
+
+## Enchantment Storage
+
+Enchantments are converted to a serializable format:
+
+```java
+this.enchantments = new HashMap<>();
+for (Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
+    this.enchantments.put(entry.getKey().getKey().toString(), entry.getValue());
+}
+```
+*From `SavedItem.java:38-41`*
+
+**Example storage:**
+```json
+{
+  "minecraft:sharpness": 5,
+  "minecraft:unbreaking": 3,
+  "minecraft:mending": 1
+}
+```
+
+When reconstructing:
+```java
+Enchantment enchantment = Enchantment.getByKey(org.bukkit.NamespacedKey.minecraft(entry.getKey()));
+if (enchantment != null) {
+    meta.addEnchant(enchantment, entry.getValue(), true);
+}
+```
+*From `SavedItem.java:84-87`*
+
+The `true` parameter allows enchantments beyond normal limits.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Rain Areas" icon="cloud-rain" href="/concepts/rain-areas">
+    Learn how saved items are used in rain areas
+  </Card>
+  <Card title="Managing Items" icon="gear" href="/api/commands/saveitem">
+    Commands for creating and managing saved items
+  </Card>
+</CardGroup>

@@ -1,0 +1,421 @@
+---
+title: 'RainManager'
+description: 'API reference for the RainManager class'
+icon: 'cloud-rain'
+---
+
+## Overview
+
+The `RainManager` class controls the rain behavior in areas. It handles starting/stopping rain, spawning items, entities, and experience orbs, and managing rain entities.
+
+**Package**: `enchanting.tools.rainTools.managers`
+
+## Getting the Manager
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.RainManager;
+
+RainManager rainManager = RainTools.getInstance().getRainManager();
+```
+
+## Core Methods
+
+### startRain
+
+Start rain in a specific area.
+
+```java
+public boolean startRain(RainArea area)
+```
+
+<ParamField path="area" type="RainArea" required>
+  The rain area to activate
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if rain started successfully, `false` if:
+  - Area is disabled
+  - Area is already raining
+  - Area is one-time and has already rained once
+</ResponseField>
+
+<Info>
+**Automatic Cleanup**: Rain entities are automatically removed after 20 minutes (24000 ticks) to prevent lag.
+
+**One-Time Areas**: If the area is configured as one-time, rain will automatically stop after 5 seconds (100 ticks).
+</Info>
+
+**Example**:
+
+```java
+import enchanting.tools.rainTools.models.RainArea;
+
+RainArea area = areaManager.getArea("spawn_rewards");
+
+if (area != null) {
+    boolean started = rainManager.startRain(area);
+    
+    if (started) {
+        Bukkit.broadcastMessage("Rain started in " + area.getName() + "!");
+    } else {
+        if (!area.isEnabled()) {
+            sender.sendMessage("Area is disabled.");
+        } else if (area.isRaining()) {
+            sender.sendMessage("Area is already raining.");
+        } else if (area.isOneTime() && area.hasRainedOnce()) {
+            sender.sendMessage("This one-time area has already rained.");
+        }
+    }
+}
+```
+
+### stopRain
+
+Stop rain in a specific area.
+
+```java
+public boolean stopRain(RainArea area)
+```
+
+<ParamField path="area" type="RainArea" required>
+  The rain area to deactivate
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  Always returns `true`
+</ResponseField>
+
+<Note>
+This method automatically removes all entities that were spawned by this rain area.
+</Note>
+
+**Example**:
+
+```java
+RainArea area = areaManager.getArea("spawn_rewards");
+
+if (area != null && area.isRaining()) {
+    rainManager.stopRain(area);
+    Bukkit.broadcastMessage("Rain stopped in " + area.getName() + "!");
+}
+```
+
+### stopAllRains
+
+Stop all active rain across all areas.
+
+```java
+public void stopAllRains()
+```
+
+<Warning>
+This method is automatically called when the plugin is disabled to ensure clean shutdown.
+</Warning>
+
+**Example**:
+
+```java
+// Emergency stop all rain
+rainManager.stopAllRains();
+Bukkit.broadcastMessage("All rain has been stopped!");
+
+// Verify all areas stopped
+for (RainArea area : areaManager.getAllAreas().values()) {
+    if (area.isRaining()) {
+        getLogger().warning("Area " + area.getName() + " is still marked as raining!");
+    }
+}
+```
+
+### isRaining
+
+Check if rain is currently active in an area.
+
+```java
+public boolean isRaining(RainArea area)
+```
+
+<ParamField path="area" type="RainArea" required>
+  The area to check
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if rain is active in this area, `false` otherwise
+</ResponseField>
+
+**Example**:
+
+```java
+RainArea area = areaManager.getArea("spawn_rewards");
+
+if (area != null) {
+    if (rainManager.isRaining(area)) {
+        sender.sendMessage("Rain is currently active!");
+    } else {
+        sender.sendMessage("Rain is not active.");
+    }
+}
+```
+
+### getActiveRainCount
+
+Get the number of areas currently raining.
+
+```java
+public int getActiveRainCount()
+```
+
+<ResponseField name="int" type="int">
+  The number of active rain areas
+</ResponseField>
+
+**Example**:
+
+```java
+int activeRains = rainManager.getActiveRainCount();
+sender.sendMessage("Active rain areas: " + activeRains);
+
+if (activeRains > 5) {
+    sender.sendMessage("Warning: High number of active rain areas may affect performance!");
+}
+```
+
+### getActiveRains
+
+Get all active rain tasks.
+
+```java
+public Map<String, BukkitTask> getActiveRains()
+```
+
+<ResponseField name="Map" type="Map<String, BukkitTask>">
+  A copy of the map containing area names and their corresponding Bukkit tasks
+</ResponseField>
+
+**Example**:
+
+```java
+import org.bukkit.scheduler.BukkitTask;
+import java.util.Map;
+
+Map<String, BukkitTask> activeRains = rainManager.getActiveRains();
+
+sender.sendMessage("Currently raining in:");
+for (String areaName : activeRains.keySet()) {
+    sender.sendMessage("- " + areaName);
+}
+```
+
+## Rain Mechanics
+
+The `RainManager` spawns different types of entities based on the area's configuration:
+
+### Items
+
+Items are spawned based on:
+- **Saved Items**: Items configured in the area's `savedItems` map
+- **Probability**: Each item has a spawn chance (0.0 to 1.0)
+- **Items Per Block**: Number of item stacks to spawn per rain event
+
+```java
+RainArea area = areaManager.getArea("loot_area");
+
+// Add items with probabilities
+area.getSavedItems().put("legendary_sword", 0.01);  // 1% chance
+area.getSavedItems().put("gold_coins", 0.5);        // 50% chance
+area.getSavedItems().put("health_potion", 0.25);    // 25% chance
+
+area.setItemsPerBlock(2); // Spawn 2 items per location
+
+areaManager.saveArea(area);
+rainManager.startRain(area);
+```
+
+### Experience Orbs
+
+Experience orbs are spawned based on:
+- **Experience Orbs**: Number of orbs per rain event
+- **Min/Max Exp**: Random experience value range per orb
+
+```java
+RainArea area = areaManager.getArea("xp_farm");
+
+// Configure XP drops
+area.setExperienceOrbs(3);      // Spawn 3 orbs per event
+area.setMinExpPerOrb(5);        // Minimum 5 XP per orb
+area.setMaxExpPerOrb(20);       // Maximum 20 XP per orb
+
+areaManager.saveArea(area);
+rainManager.startRain(area);
+```
+
+### Entities
+
+Mob entities are spawned based on:
+- **Entity Type**: The type of mob to spawn
+- **Probability**: Spawn chance per rain event (0.0 to 1.0)
+
+```java
+import org.bukkit.entity.EntityType;
+
+RainArea area = areaManager.getArea("mob_arena");
+
+// Add entities with probabilities
+area.getEntities().put(EntityType.ZOMBIE, 0.3);      // 30% chance
+area.getEntities().put(EntityType.SKELETON, 0.3);    // 30% chance
+area.getEntities().put(EntityType.CREEPER, 0.2);     // 20% chance
+area.getEntities().put(EntityType.ENDERMAN, 0.05);   // 5% chance
+
+areaManager.saveArea(area);
+rainManager.startRain(area);
+```
+
+## Complete Example
+
+Here's a complete example that creates a reward event:
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.AreaManager;
+import enchanting.tools.rainTools.managers.RainManager;
+import enchanting.tools.rainTools.managers.ItemManager;
+import enchanting.tools.rainTools.models.RainArea;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class RewardEventCommand implements CommandExecutor {
+    
+    private final JavaPlugin plugin;
+    private final AreaManager areaManager;
+    private final RainManager rainManager;
+    private final ItemManager itemManager;
+    
+    public RewardEventCommand(JavaPlugin plugin) {
+        this.plugin = plugin;
+        RainTools rainTools = RainTools.getInstance();
+        this.areaManager = rainTools.getAreaManager();
+        this.rainManager = rainTools.getRainManager();
+        this.itemManager = rainTools.getItemManager();
+    }
+    
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!sender.hasPermission("example.rewardevent")) {
+            sender.sendMessage("You don't have permission!");
+            return true;
+        }
+        
+        // Get or create the reward area
+        RainArea rewardArea = areaManager.getArea("server_event");
+        
+        if (rewardArea == null) {
+            // Create the area if it doesn't exist
+            World world = Bukkit.getWorld("world");
+            Location pos1 = new Location(world, 0, 64, 0);
+            Location pos2 = new Location(world, 50, 100, 50);
+            
+            rewardArea = new RainArea("server_event", pos1, pos2);
+            
+            // Configure rain settings
+            rewardArea.setEnabled(true);
+            rewardArea.setOneTime(false);           // Repeating rain
+            rewardArea.setRainPerSecond(10);        // 10 items per second
+            rewardArea.setTimerTicks(20);           // Every second
+            rewardArea.setItemsPerBlock(1);
+            
+            // Add items (assuming they were saved earlier)
+            rewardArea.getSavedItems().put("diamond_reward", 0.1);    // 10%
+            rewardArea.getSavedItems().put("gold_reward", 0.3);       // 30%
+            rewardArea.getSavedItems().put("iron_reward", 0.5);       // 50%
+            
+            // Add experience orbs
+            rewardArea.setExperienceOrbs(5);
+            rewardArea.setMinExpPerOrb(10);
+            rewardArea.setMaxExpPerOrb(50);
+            
+            // Add some mobs for excitement
+            rewardArea.getEntities().put(EntityType.VILLAGER, 0.05);  // 5% chance
+            
+            // Save the area
+            areaManager.saveArea(rewardArea);
+        }
+        
+        // Start the rain
+        if (rainManager.isRaining(rewardArea)) {
+            sender.sendMessage("Reward event is already running!");
+            return true;
+        }
+        
+        boolean started = rainManager.startRain(rewardArea);
+        
+        if (started) {
+            Bukkit.broadcastMessage("§6§l[EVENT] §eReward event has started at spawn!");
+            Bukkit.broadcastMessage("§eCollect as many rewards as you can!");
+            
+            // Schedule auto-stop after 5 minutes
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (rainManager.isRaining(rewardArea)) {
+                    rainManager.stopRain(rewardArea);
+                    Bukkit.broadcastMessage("§6§l[EVENT] §eReward event has ended!");
+                }
+            }, 6000L); // 5 minutes = 6000 ticks
+            
+        } else {
+            sender.sendMessage("§cFailed to start reward event!");
+        }
+        
+        return true;
+    }
+}
+```
+
+## Performance Considerations
+
+<Warning>
+**Entity Management**: Rain entities are automatically cleaned up after 20 minutes to prevent server lag. Be mindful of:
+- Number of active rain areas
+- Rain frequency (timer ticks)
+- Items per second
+- Entity spawn rates
+</Warning>
+
+### Recommended Limits
+
+| Setting | Recommended | Maximum |
+|---------|-------------|----------|
+| Active Areas | 1-3 | 5 |
+| Rain Per Second | 5-10 | 20 |
+| Items Per Block | 1-2 | 5 |
+| Experience Orbs | 1-5 | 10 |
+
+**Example of optimized settings**:
+
+```java
+RainArea area = areaManager.getArea("optimized_area");
+
+// Balanced settings for performance
+area.setRainPerSecond(5);           // Moderate spawn rate
+area.setTimerTicks(40);             // Every 2 seconds
+area.setItemsPerBlock(1);           // One item per spawn
+area.setExperienceOrbs(2);          // Two orbs per spawn
+
+// Limit entity spawning
+area.getEntities().clear();         // Remove entities if not needed
+
+areaManager.saveArea(area);
+```
+
+## See Also
+
+- [RainArea Model](/api/java/models#rainarea) - Rain area configuration
+- [AreaManager](/api/java/area-manager) - Create and manage areas
+- [ItemManager](/api/java/item-manager) - Manage saved items

@@ -1,0 +1,267 @@
+---
+title: 'Java API Overview'
+description: 'Learn how to integrate RainTools into your Minecraft plugin'
+icon: 'code'
+---
+
+## Getting Started
+
+RainTools provides a comprehensive Java API for creating and managing item/entity rain areas in your Minecraft plugins.
+
+## Adding RainTools as a Dependency
+
+### Gradle
+
+Add RainTools to your `build.gradle`:
+
+```groovy build.gradle
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
+    compileOnly files('libs/RainTools-1.0.jar') // Add RainTools JAR to your libs folder
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+}
+```
+
+### Maven
+
+```xml pom.xml
+<dependencies>
+    <dependency>
+        <groupId>org.spigotmc</groupId>
+        <artifactId>spigot-api</artifactId>
+        <version>1.16.5-R0.1-SNAPSHOT</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>enchanting.tools</groupId>
+        <artifactId>RainTools</artifactId>
+        <version>1.0</version>
+        <scope>provided</scope>
+        <systemPath>${project.basedir}/libs/RainTools-1.0.jar</systemPath>
+    </dependency>
+</dependencies>
+```
+
+### plugin.yml
+
+Add RainTools as a dependency in your `plugin.yml`:
+
+```yaml plugin.yml
+name: YourPlugin
+version: 1.0
+main: com.example.yourplugin.YourPlugin
+api-version: 1.16
+depend: [RainTools]
+```
+
+## Getting the Plugin Instance
+
+Access RainTools through its singleton instance:
+
+```java
+import enchanting.tools.rainTools.RainTools;
+
+public class YourPlugin extends JavaPlugin {
+    
+    private RainTools rainTools;
+    
+    @Override
+    public void onEnable() {
+        // Get RainTools instance
+        rainTools = RainTools.getInstance();
+        
+        if (rainTools == null) {
+            getLogger().severe("RainTools not found! Make sure it's installed.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        
+        getLogger().info("Successfully hooked into RainTools!");
+    }
+}
+```
+
+## Accessing Managers
+
+RainTools provides three main manager classes:
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.AreaManager;
+import enchanting.tools.rainTools.managers.RainManager;
+import enchanting.tools.rainTools.managers.ItemManager;
+
+public class YourPlugin extends JavaPlugin {
+    
+    private AreaManager areaManager;
+    private RainManager rainManager;
+    private ItemManager itemManager;
+    
+    @Override
+    public void onEnable() {
+        RainTools rainTools = RainTools.getInstance();
+        
+        // Access the managers
+        areaManager = rainTools.getAreaManager();
+        rainManager = rainTools.getRainManager();
+        itemManager = rainTools.getItemManager();
+    }
+}
+```
+
+## Basic Integration Example
+
+Here's a complete example that creates a rain area and starts rain:
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.AreaManager;
+import enchanting.tools.rainTools.managers.RainManager;
+import enchanting.tools.rainTools.managers.ItemManager;
+import enchanting.tools.rainTools.models.RainArea;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class ExamplePlugin extends JavaPlugin {
+    
+    private RainTools rainTools;
+    private AreaManager areaManager;
+    private RainManager rainManager;
+    private ItemManager itemManager;
+    
+    @Override
+    public void onEnable() {
+        // Get RainTools instance
+        rainTools = RainTools.getInstance();
+        
+        if (rainTools == null) {
+            getLogger().severe("RainTools not found!");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        
+        // Get managers
+        areaManager = rainTools.getAreaManager();
+        rainManager = rainTools.getRainManager();
+        itemManager = rainTools.getItemManager();
+        
+        getLogger().info("Successfully integrated with RainTools!");
+    }
+    
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Only players can use this command!");
+            return true;
+        }
+        
+        Player player = (Player) sender;
+        
+        if (command.getName().equalsIgnoreCase("createreward")) {
+            // Save the item in player's hand
+            ItemStack heldItem = player.getInventory().getItemInMainHand();
+            if (heldItem != null && !heldItem.getType().isAir()) {
+                boolean saved = itemManager.saveItem("reward_diamond", heldItem);
+                if (saved) {
+                    player.sendMessage("Item saved successfully!");
+                } else {
+                    player.sendMessage("Failed to save item. It may already exist.");
+                }
+            }
+            return true;
+        }
+        
+        if (command.getName().equalsIgnoreCase("startrewardrain")) {
+            // Get or create a rain area
+            RainArea area = areaManager.getArea("spawn_rewards");
+            
+            if (area == null) {
+                // Create a new area around the player
+                Location pos1 = player.getLocation().add(-10, 0, -10);
+                Location pos2 = player.getLocation().add(10, 20, 10);
+                
+                area = new RainArea("spawn_rewards", pos1, pos2);
+                area.setRainPerSecond(5);
+                area.setItemsPerBlock(1);
+                
+                // Add the saved item to the rain area
+                area.getSavedItems().put("reward_diamond", 0.5); // 50% chance
+                
+                // Add experience orbs
+                area.setExperienceOrbs(2);
+                area.setMinExpPerOrb(1);
+                area.setMaxExpPerOrb(10);
+                
+                // Save the area
+                areaManager.saveArea(area);
+            }
+            
+            // Start the rain
+            boolean started = rainManager.startRain(area);
+            if (started) {
+                player.sendMessage("Rain started in area: " + area.getName());
+            } else {
+                player.sendMessage("Failed to start rain. Area may already be raining.");
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
+}
+```
+
+## Package Structure
+
+```
+enchanting.tools.rainTools
+├── RainTools              # Main plugin class
+├── managers/
+│   ├── AreaManager        # Manage rain areas
+│   ├── RainManager        # Start/stop rain
+│   └── ItemManager        # Save/load items
+└── models/
+    ├── RainArea           # Rain area data model
+    └── SavedItem          # Saved item data model
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Area Manager" icon="map" href="/api/java/area-manager">
+    Create and manage rain areas
+  </Card>
+  <Card title="Rain Manager" icon="cloud-rain" href="/api/java/rain-manager">
+    Control rain behavior
+  </Card>
+  <Card title="Item Manager" icon="box" href="/api/java/item-manager">
+    Save and load custom items
+  </Card>
+</CardGroup>
+
+## Requirements
+
+- **Java Version**: Java 8 or higher
+- **Spigot/Paper**: 1.16.5 or higher
+- **RainTools**: Latest version installed on server

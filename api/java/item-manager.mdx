@@ -1,0 +1,594 @@
+---
+title: 'ItemManager'
+description: 'API reference for the ItemManager class'
+icon: 'box'
+---
+
+## Overview
+
+The `ItemManager` class handles saving, loading, and managing custom items that can be used in rain areas. Items are persisted to configuration and can be referenced by name.
+
+**Package**: `enchanting.tools.rainTools.managers`
+
+## Getting the Manager
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.ItemManager;
+
+ItemManager itemManager = RainTools.getInstance().getItemManager();
+```
+
+## Core Methods
+
+### saveItem
+
+Save a new item to the manager.
+
+```java
+public boolean saveItem(String name, ItemStack itemStack)
+```
+
+<ParamField path="name" type="String" required>
+  Unique identifier for the item
+</ParamField>
+
+<ParamField path="itemStack" type="ItemStack" required>
+  The ItemStack to save (must not be null or air)
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if the item was saved successfully, `false` if:
+  - ItemStack is null or air
+  - An item with this name already exists
+</ResponseField>
+
+<Info>
+The item is automatically persisted to the configuration file.
+</Info>
+
+**Example**:
+
+```java
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.Arrays;
+
+// Create a custom item
+ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+ItemMeta meta = sword.getItemMeta();
+meta.setDisplayName("§6Legendary Sword");
+meta.setLore(Arrays.asList(
+    "§7A powerful weapon",
+    "§7forged by ancient heroes"
+));
+meta.addEnchant(Enchantment.DAMAGE_ALL, 5, true);
+meta.addEnchant(Enchantment.FIRE_ASPECT, 2, true);
+sword.setItemMeta(meta);
+
+// Save the item
+boolean saved = itemManager.saveItem("legendary_sword", sword);
+
+if (saved) {
+    sender.sendMessage("§aItem saved successfully!");
+} else {
+    sender.sendMessage("§cFailed to save item. Name may already exist.");
+}
+```
+
+### updateItem
+
+Update an existing item or create it if it doesn't exist.
+
+```java
+public boolean updateItem(String name, ItemStack itemStack)
+```
+
+<ParamField path="name" type="String" required>
+  The name of the item to update
+</ParamField>
+
+<ParamField path="itemStack" type="ItemStack" required>
+  The new ItemStack data (must not be null or air)
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if the item was updated successfully, `false` if ItemStack is null or air
+</ResponseField>
+
+<Note>
+Unlike `saveItem`, this method will create the item if it doesn't exist, or overwrite it if it does.
+</Note>
+
+**Example**:
+
+```java
+// Get and modify an existing item
+ItemStack existingItem = itemManager.getItemStack("legendary_sword");
+
+if (existingItem != null) {
+    ItemMeta meta = existingItem.getItemMeta();
+    
+    // Add more enchantments
+    meta.addEnchant(Enchantment.MENDING, 1, true);
+    meta.addEnchant(Enchantment.DURABILITY, 3, true);
+    
+    existingItem.setItemMeta(meta);
+    
+    // Update the saved item
+    itemManager.updateItem("legendary_sword", existingItem);
+    sender.sendMessage("§aItem updated with new enchantments!");
+}
+```
+
+### deleteItem
+
+Delete a saved item.
+
+```java
+public boolean deleteItem(String name)
+```
+
+<ParamField path="name" type="String" required>
+  The name of the item to delete
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if the item was deleted, `false` if the item doesn't exist
+</ResponseField>
+
+<Warning>
+Deleting an item that is currently used in rain areas will cause those areas to skip spawning that item.
+</Warning>
+
+**Example**:
+
+```java
+if (itemManager.deleteItem("old_item")) {
+    sender.sendMessage("§aItem deleted successfully!");
+} else {
+    sender.sendMessage("§cItem not found.");
+}
+```
+
+### getSavedItem
+
+Get a SavedItem object by name.
+
+```java
+public SavedItem getSavedItem(String name)
+```
+
+<ParamField path="name" type="String" required>
+  The name of the item to retrieve
+</ParamField>
+
+<ResponseField name="SavedItem" type="SavedItem">
+  The SavedItem object, or `null` if not found
+</ResponseField>
+
+**Example**:
+
+```java
+import enchanting.tools.rainTools.models.SavedItem;
+
+SavedItem savedItem = itemManager.getSavedItem("legendary_sword");
+
+if (savedItem != null) {
+    sender.sendMessage("Item: " + savedItem.getName());
+    sender.sendMessage("Material: " + savedItem.getMaterial());
+    sender.sendMessage("Amount: " + savedItem.getAmount());
+    sender.sendMessage("Display Name: " + savedItem.getDisplayName());
+}
+```
+
+### getItemStack
+
+Get an ItemStack by name.
+
+```java
+public ItemStack getItemStack(String name)
+```
+
+<ParamField path="name" type="String" required>
+  The name of the item to retrieve
+</ParamField>
+
+<ResponseField name="ItemStack" type="ItemStack">
+  A copy of the ItemStack, or `null` if not found
+</ResponseField>
+
+<Info>
+This is the most commonly used method for retrieving items to use in your plugin.
+</Info>
+
+**Example**:
+
+```java
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+// Give a saved item to a player
+Player player = ...; // Get player
+ItemStack item = itemManager.getItemStack("legendary_sword");
+
+if (item != null) {
+    player.getInventory().addItem(item);
+    player.sendMessage("§aYou received a legendary sword!");
+} else {
+    player.sendMessage("§cItem not found!");
+}
+```
+
+### getItemNames
+
+Get all saved item names.
+
+```java
+public Set<String> getItemNames()
+```
+
+<ResponseField name="Set" type="Set<String>">
+  A set of all item names
+</ResponseField>
+
+**Example**:
+
+```java
+import java.util.Set;
+
+Set<String> itemNames = itemManager.getItemNames();
+
+sender.sendMessage("Saved items (" + itemNames.size() + "):");
+for (String name : itemNames) {
+    sender.sendMessage("- " + name);
+}
+```
+
+### getAllItems
+
+Get all saved items.
+
+```java
+public Map<String, SavedItem> getAllItems()
+```
+
+<ResponseField name="Map" type="Map<String, SavedItem>">
+  A copy of all saved items mapped by their names
+</ResponseField>
+
+**Example**:
+
+```java
+import enchanting.tools.rainTools.models.SavedItem;
+import java.util.Map;
+
+Map<String, SavedItem> allItems = itemManager.getAllItems();
+
+sender.sendMessage("=== All Saved Items ===");
+for (Map.Entry<String, SavedItem> entry : allItems.entrySet()) {
+    String name = entry.getKey();
+    SavedItem item = entry.getValue();
+    
+    sender.sendMessage(name + ":");
+    sender.sendMessage("  Material: " + item.getMaterial());
+    sender.sendMessage("  Amount: " + item.getAmount());
+    
+    if (item.getDisplayName() != null) {
+        sender.sendMessage("  Display: " + item.getDisplayName());
+    }
+}
+```
+
+### hasItem
+
+Check if an item exists.
+
+```java
+public boolean hasItem(String name)
+```
+
+<ParamField path="name" type="String" required>
+  The name of the item to check
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if the item exists, `false` otherwise
+</ResponseField>
+
+**Example**:
+
+```java
+if (itemManager.hasItem("legendary_sword")) {
+    sender.sendMessage("Legendary sword is available!");
+} else {
+    sender.sendMessage("Legendary sword has not been created yet.");
+}
+```
+
+### getItemCount
+
+Get the total number of saved items.
+
+```java
+public int getItemCount()
+```
+
+<ResponseField name="int" type="int">
+  The number of saved items
+</ResponseField>
+
+**Example**:
+
+```java
+int count = itemManager.getItemCount();
+sender.sendMessage("Total saved items: " + count);
+
+if (count > 50) {
+    sender.sendMessage("§eWarning: Large number of saved items may affect performance.");
+}
+```
+
+### reloadItems
+
+Reload all items from configuration.
+
+```java
+public void reloadItems()
+```
+
+<Warning>
+This clears all in-memory items and reloads from the configuration file. Any unsaved changes will be lost.
+</Warning>
+
+**Example**:
+
+```java
+itemManager.reloadItems();
+sender.sendMessage("Items reloaded from configuration.");
+sender.sendMessage("Loaded " + itemManager.getItemCount() + " items.");
+```
+
+## Complete Example
+
+Here's a complete example showing item management in a command:
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.ItemManager;
+import org.bukkit.Material;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.Arrays;
+import java.util.Set;
+
+public class CustomItemCommand implements CommandExecutor {
+    
+    private final ItemManager itemManager;
+    
+    public CustomItemCommand() {
+        this.itemManager = RainTools.getInstance().getItemManager();
+    }
+    
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Only players can use this command!");
+            return true;
+        }
+        
+        Player player = (Player) sender;
+        
+        if (args.length == 0) {
+            player.sendMessage("§eUsage:");
+            player.sendMessage("§e/customitem save <name> - Save held item");
+            player.sendMessage("§e/customitem get <name> - Get a saved item");
+            player.sendMessage("§e/customitem list - List all items");
+            player.sendMessage("§e/customitem delete <name> - Delete an item");
+            return true;
+        }
+        
+        String subCommand = args[0].toLowerCase();
+        
+        switch (subCommand) {
+            case "save":
+                if (args.length < 2) {
+                    player.sendMessage("§cUsage: /customitem save <name>");
+                    return true;
+                }
+                
+                String saveName = args[1];
+                ItemStack heldItem = player.getInventory().getItemInMainHand();
+                
+                if (heldItem == null || heldItem.getType() == Material.AIR) {
+                    player.sendMessage("§cYou must be holding an item!");
+                    return true;
+                }
+                
+                if (itemManager.saveItem(saveName, heldItem)) {
+                    player.sendMessage("§aItem saved as '" + saveName + "'");
+                } else {
+                    player.sendMessage("§cFailed to save. Item name may already exist.");
+                    player.sendMessage("§eUse §f/customitem update " + saveName + "§e to update it.");
+                }
+                break;
+                
+            case "update":
+                if (args.length < 2) {
+                    player.sendMessage("§cUsage: /customitem update <name>");
+                    return true;
+                }
+                
+                String updateName = args[1];
+                ItemStack updateItem = player.getInventory().getItemInMainHand();
+                
+                if (updateItem == null || updateItem.getType() == Material.AIR) {
+                    player.sendMessage("§cYou must be holding an item!");
+                    return true;
+                }
+                
+                if (itemManager.updateItem(updateName, updateItem)) {
+                    player.sendMessage("§aItem '" + updateName + "' updated successfully!");
+                } else {
+                    player.sendMessage("§cFailed to update item.");
+                }
+                break;
+                
+            case "get":
+                if (args.length < 2) {
+                    player.sendMessage("§cUsage: /customitem get <name>");
+                    return true;
+                }
+                
+                String getName = args[1];
+                ItemStack item = itemManager.getItemStack(getName);
+                
+                if (item != null) {
+                    player.getInventory().addItem(item);
+                    player.sendMessage("§aYou received: " + getName);
+                } else {
+                    player.sendMessage("§cItem '" + getName + "' not found.");
+                }
+                break;
+                
+            case "list":
+                Set<String> itemNames = itemManager.getItemNames();
+                
+                if (itemNames.isEmpty()) {
+                    player.sendMessage("§eNo saved items found.");
+                } else {
+                    player.sendMessage("§6=== Saved Items (" + itemNames.size() + ") ===");
+                    for (String name : itemNames) {
+                        player.sendMessage("§e- " + name);
+                    }
+                }
+                break;
+                
+            case "delete":
+                if (args.length < 2) {
+                    player.sendMessage("§cUsage: /customitem delete <name>");
+                    return true;
+                }
+                
+                String deleteName = args[1];
+                
+                if (itemManager.deleteItem(deleteName)) {
+                    player.sendMessage("§aItem '" + deleteName + "' deleted successfully!");
+                } else {
+                    player.sendMessage("§cItem '" + deleteName + "' not found.");
+                }
+                break;
+                
+            case "info":
+                if (args.length < 2) {
+                    player.sendMessage("§cUsage: /customitem info <name>");
+                    return true;
+                }
+                
+                String infoName = args[1];
+                SavedItem savedItem = itemManager.getSavedItem(infoName);
+                
+                if (savedItem != null) {
+                    player.sendMessage("§6=== Item Info: " + infoName + " ===");
+                    player.sendMessage("§eMaterial: §f" + savedItem.getMaterial());
+                    player.sendMessage("§eAmount: §f" + savedItem.getAmount());
+                    
+                    if (savedItem.getDisplayName() != null) {
+                        player.sendMessage("§eDisplay Name: §f" + savedItem.getDisplayName());
+                    }
+                    
+                    if (savedItem.getLore() != null && !savedItem.getLore().isEmpty()) {
+                        player.sendMessage("§eLore:");
+                        for (String lore : savedItem.getLore()) {
+                            player.sendMessage("  §f" + lore);
+                        }
+                    }
+                    
+                    if (savedItem.getEnchantments() != null && !savedItem.getEnchantments().isEmpty()) {
+                        player.sendMessage("§eEnchantments:");
+                        for (Map.Entry<String, Integer> ench : savedItem.getEnchantments().entrySet()) {
+                            player.sendMessage("  §f" + ench.getKey() + " " + ench.getValue());
+                        }
+                    }
+                } else {
+                    player.sendMessage("§cItem '" + infoName + "' not found.");
+                }
+                break;
+                
+            default:
+                player.sendMessage("§cUnknown subcommand: " + subCommand);
+                return false;
+        }
+        
+        return true;
+    }
+}
+```
+
+## Using Items in Rain Areas
+
+Here's how to use saved items in rain areas:
+
+```java
+import enchanting.tools.rainTools.models.RainArea;
+
+// Get or create an area
+RainArea area = areaManager.getArea("loot_area");
+
+// Check if items exist before adding them
+if (itemManager.hasItem("legendary_sword")) {
+    area.getSavedItems().put("legendary_sword", 0.1);  // 10% chance
+}
+
+if (itemManager.hasItem("gold_coins")) {
+    area.getSavedItems().put("gold_coins", 0.5);       // 50% chance
+}
+
+if (itemManager.hasItem("health_potion")) {
+    area.getSavedItems().put("health_potion", 0.3);    // 30% chance
+}
+
+// Save and start rain
+areaManager.saveArea(area);
+rainManager.startRain(area);
+```
+
+## Item Serialization
+
+<Info>
+Items are serialized using Bukkit's serialization system, which preserves:
+- Material type
+- Amount
+- Display name
+- Lore
+- Enchantments
+- All NBT data (custom model data, attributes, etc.)
+</Info>
+
+The `SavedItem` class handles serialization automatically:
+
+```java
+import enchanting.tools.rainTools.models.SavedItem;
+
+// Create a SavedItem from an ItemStack
+ItemStack itemStack = ...; // Your item
+SavedItem savedItem = new SavedItem("my_item", itemStack);
+
+// Convert back to ItemStack
+ItemStack retrievedItem = savedItem.toItemStack();
+```
+
+## See Also
+
+- [SavedItem Model](/api/java/models#saveditem) - SavedItem data structure
+- [RainArea Model](/api/java/models#rainarea) - Using items in rain areas
+- [RainManager](/api/java/rain-manager) - Starting rain with items

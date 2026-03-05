@@ -1,0 +1,778 @@
+---
+title: /saveitem
+description: Complete reference for the saveitem command and all its subcommands
+---
+
+The `/saveitem` command manages saved items that can be used in rain areas. It allows you to save items with NBT data, manage your item library, and assign items to specific rain areas with probability values.
+
+## Aliases
+
+- `/si` - Short alias for `/saveitem`
+
+## Permission
+
+- `raintools.item.save` - Required for all saveitem operations
+
+## Command Overview
+
+```
+/saveitem <subcommand> [arguments]
+```
+
+When executed without arguments, displays help information with all available subcommands.
+
+---
+
+## Subcommands
+
+### save
+
+Saves the item currently held in your main hand with all its NBT data, including enchantments, lore, custom names, and attributes.
+
+<ParamField path="name" type="string" required>
+  A unique identifier for the saved item. This name is used when adding items to rain areas.
+</ParamField>
+
+**Permission:** `raintools.item.save`
+
+**Player Only:** Yes - Console cannot execute this command
+
+**Usage:**
+```
+/saveitem save <name>
+/saveitem <name>
+/si save legendary_sword
+/si legendary_sword
+```
+
+**Examples:**
+```bash
+# Hold an enchanted diamond sword, then:
+/saveitem save legendary_sword
+
+# Using the short syntax (no 'save' keyword needed)
+/saveitem epic_helmet
+
+# Using the short alias
+/si starter_pickaxe
+
+# Save a custom item with lore
+/si boss_drop_weapon
+```
+
+<Note>
+  The item is saved with ALL NBT data including:
+  - Display name and lore
+  - Enchantments
+  - Custom attributes
+  - Damage/durability
+  - Custom model data
+  - Potion effects (for potions)
+  - Book content (for written books)
+  - Firework effects
+  - Banner patterns
+  - And more
+</Note>
+
+**What Gets Saved:**
+- Item type (material)
+- Item amount (stack size)
+- Display name (if set)
+- Lore (all lines)
+- Enchantments (all levels)
+- Unbreakable flag
+- Custom model data
+- Attribute modifiers
+- Item flags
+- All other NBT data
+
+<Warning>
+  You cannot overwrite an existing saved item using this command. Delete the old item first using `/saveitem delete <name>`, then save the new one.
+</Warning>
+
+---
+
+### list
+
+Displays all saved items in the plugin's item library.
+
+**Permission:** `raintools.item.save`
+
+**Usage:**
+```
+/saveitem list
+/si list
+```
+
+**Example Output:**
+```
+Saved Items (5 total):
+- legendary_sword (Legendary Blade x1)
+- diamond_armor (Diamond Chestplate x1)
+- gold_stack (Gold Ingot x64)
+- healing_potion (Potion x1)
+- custom_food (Golden Apple x16)
+```
+
+**Console Usage:**
+```bash
+# List all items from console
+saveitem list
+```
+
+<Accordion title="Understanding the output">
+  Each line shows:
+  - **Saved name** - The identifier you use in commands
+  - **Display name** - The item's custom name (if set) or material name
+  - **Stack size** - How many items spawn (x1, x64, etc.)
+  
+  Example:
+  ```
+  - boss_loot (§6Legendary Sword x1)
+  ```
+  - Saved name: `boss_loot`
+  - Display name: `§6Legendary Sword` (with gold color)
+  - Stack size: 1 item per spawn
+</Accordion>
+
+---
+
+### delete
+
+Permanently deletes a saved item from the item library.
+
+<ParamField path="name" type="string" required>
+  The name of the saved item to delete.
+</ParamField>
+
+**Permission:** `raintools.item.save`
+
+**Aliases:** `remove`
+
+**Usage:**
+```
+/saveitem delete <name>
+/saveitem remove <name>
+/si delete legendary_sword
+```
+
+**Examples:**
+```bash
+# Delete a saved item
+/saveitem delete old_weapon
+
+# Using the remove alias
+/si remove outdated_item
+
+# Console usage
+saveitem delete temp_item
+```
+
+<Warning>
+  Deleting an item is permanent and removes it from disk. However, it does NOT automatically remove the item from rain areas. You must use `/saveitem removearea` to remove it from each area where it's used.
+</Warning>
+
+---
+
+### add
+
+Adds a saved item to a rain area with a specific spawn probability.
+
+<ParamField path="area" type="string" required>
+  The name of the rain area to add the item to.
+</ParamField>
+
+<ParamField path="item" type="string" required>
+  The name of the saved item to add.
+</ParamField>
+
+<ParamField path="probability" type="decimal" required>
+  The spawn probability for this item. Must be between 0.0 and 1.0.
+  
+  - `1.0` = 100% chance (always spawns)
+  - `0.5` = 50% chance
+  - `0.1` = 10% chance
+  - `0.01` = 1% chance
+</ParamField>
+
+**Permission:** `raintools.item.save`
+
+**Usage:**
+```
+/saveitem add <area> <item> <probability>
+/si add spawn_event diamond 0.1
+```
+
+**Examples:**
+```bash
+# Add a legendary sword with 5% chance
+/saveitem add boss_arena legendary_sword 0.05
+
+# Add common items with high chance
+/saveitem add spawn_event iron_ingot 0.8
+
+# Add guaranteed items (always spawn)
+/saveitem add daily_reward welcome_kit 1.0
+
+# Add ultra-rare items
+/si add special_event mythic_weapon 0.001
+
+# Console usage
+saveitem add weekend_event bonus_item 0.25
+```
+
+**Probability Guidelines:**
+
+<CardGroup cols={2}>
+  <Card title="Common Items" icon="cube">
+    **0.5 - 1.0** (50% - 100%)
+    
+    Use for basic resources and common rewards:
+    - Iron ingots: `0.8`
+    - Coal: `0.9`
+    - Food: `0.7`
+    - Common materials: `0.6`
+  </Card>
+  
+  <Card title="Uncommon Items" icon="box">
+    **0.2 - 0.5** (20% - 50%)
+    
+    Use for useful but not rare items:
+    - Gold ingots: `0.4`
+    - Enchanted tools: `0.3`
+    - Potions: `0.25`
+    - Special food: `0.35`
+  </Card>
+  
+  <Card title="Rare Items" icon="gem">
+    **0.05 - 0.2** (5% - 20%)
+    
+    Use for valuable rewards:
+    - Diamonds: `0.15`
+    - Enchanted books: `0.1`
+    - Netherite scrap: `0.08`
+    - Rare materials: `0.12`
+  </Card>
+  
+  <Card title="Legendary Items" icon="crown">
+    **0.001 - 0.05** (0.1% - 5%)
+    
+    Use for the rarest items:
+    - Custom legendaries: `0.01`
+    - Mythic weapons: `0.005`
+    - Ultra-rare items: `0.001`
+    - Boss drops: `0.02`
+  </Card>
+</CardGroup>
+
+<Accordion title="How do probabilities work?">
+  When an item spawns during rain, the plugin:
+  
+  1. Generates a random number between 0 and 1
+  2. Checks if the random number is less than the item's probability
+  3. If yes, spawns the item; if no, skips it
+  
+  **Example with 0.1 (10%) probability:**
+  - Random: 0.05 → Spawns (0.05 < 0.1)
+  - Random: 0.15 → Doesn't spawn (0.15 > 0.1)
+  - Random: 0.08 → Spawns (0.08 < 0.1)
+  
+  Over 100 attempts, approximately 10 items will spawn.
+  
+  **Multiple items in one area:**
+  Each item is checked independently, so in one rain cycle:
+  - Common item (0.8) will likely spawn
+  - Rare item (0.1) might spawn
+  - Legendary item (0.01) probably won't spawn
+  
+  All three could spawn in the same cycle, or none might spawn (unlikely but possible).
+</Accordion>
+
+<Accordion title="Probability tips and strategies">
+  **Balanced Loot Table (example):**
+  ```bash
+  /saveitem add treasure_room common_ore 0.7      # Common
+  /saveitem add treasure_room rare_gem 0.25       # Uncommon
+  /saveitem add treasure_room enchanted_gear 0.15 # Rare
+  /saveitem add treasure_room legendary_item 0.05 # Legendary
+  ```
+  
+  **Progressive Rarity:**
+  Create excitement by having many common items but few rare ones:
+  ```bash
+  # Many commons (players get something almost always)
+  /saveitem add event wood 0.95
+  /saveitem add event stone 0.90
+  
+  # Some uncommons (keep it interesting)
+  /saveitem add event iron 0.40
+  /saveitem add event gold 0.25
+  
+  # Few rares (special moments)
+  /saveitem add event diamond 0.10
+  /saveitem add event netherite 0.05
+  
+  # Ultra-rare (legendary moments)
+  /saveitem add event custom_item 0.01
+  ```
+  
+  **Guaranteed + Rare Mix:**
+  Mix guaranteed items with rare ones for consistency plus excitement:
+  ```bash
+  /saveitem add daily_login starter_kit 1.0    # Always get something
+  /saveitem add daily_login bonus_item 0.3     # Sometimes get extra
+  /saveitem add daily_login jackpot 0.05       # Rarely hit jackpot
+  ```
+</Accordion>
+
+---
+
+### removearea
+
+Removes a saved item from a rain area's loot table.
+
+<ParamField path="area" type="string" required>
+  The name of the rain area to remove the item from.
+</ParamField>
+
+<ParamField path="item" type="string" required>
+  The name of the saved item to remove from the area.
+</ParamField>
+
+**Permission:** `raintools.item.save`
+
+**Usage:**
+```
+/saveitem removearea <area> <item>
+/si removearea spawn_event old_weapon
+```
+
+**Examples:**
+```bash
+# Remove an item from an area
+/saveitem removearea boss_arena outdated_loot
+
+# Using alias
+/si removearea spawn_event seasonal_item
+
+# Console usage
+saveitem removearea temp_event temp_item
+```
+
+<Note>
+  This only removes the item from the rain area's loot table. The saved item itself remains in the item library and can be used in other areas or re-added later.
+</Note>
+
+---
+
+## Tab Completion
+
+The command supports comprehensive tab completion:
+
+**First Argument:**
+- Subcommands: `save`, `list`, `delete`, `add`, `removearea`
+- All saved item names (for quick save using `/saveitem <name>`)
+
+**Second Argument:**
+- For `delete`: All saved item names
+- For `add` and `removearea`: All rain area names
+
+**Third Argument:**
+- For `add` and `removearea`: All saved item names
+
+**Fourth Argument:**
+- For `add`: Common probability values: `0.1`, `0.25`, `0.5`, `0.75`, `1.0`
+
+---
+
+## Working with NBT Data
+
+RainTools preserves ALL NBT (Named Binary Tag) data when saving items. This means you can save complex items with:
+
+### Custom Names and Lore
+
+```bash
+# In Minecraft, give yourself a custom item:
+/give @s diamond_sword{display:{Name:'"§6Legendary Blade"',Lore:['"§7A sword of legends"','"§7Deals massive damage"']}} 1
+
+# Hold it and save:
+/saveitem legendary_sword
+
+# The spawned item will have the exact same name and lore
+```
+
+### Enchantments
+
+```bash
+# Create an enchanted item:
+/give @s diamond_pickaxe{Enchantments:[{id:"minecraft:efficiency",lvl:5},{id:"minecraft:unbreaking",lvl:3},{id:"minecraft:fortune",lvl:3}]} 1
+
+# Save it:
+/saveitem super_pickaxe
+
+# Spawned items will have all enchantments
+```
+
+### Potion Effects
+
+```bash
+# Create a custom potion:
+/give @s potion{Potion:"minecraft:water",CustomPotionEffects:[{Id:1,Amplifier:2,Duration:1200}],display:{Name:'"§dSuper Speed Potion"'}} 1
+
+# Save it:
+/saveitem speed_boost
+
+# Spawned potions will have the exact effects
+```
+
+### Books with Text
+
+```bash
+# Create a written book with content
+# (Use in-game book & quill or give command)
+
+# Save it:
+/saveitem quest_book
+
+# Spawned books will have all pages intact
+```
+
+### Skulls with Textures
+
+```bash
+# Custom player head:
+/give @s player_head{SkullOwner:"PlayerName"} 1
+
+# Or with custom texture:
+/give @s player_head{SkullOwner:{Id:[I;-123456,789012,345678,901234],Properties:{textures:[{Value:"base64_texture_here"}]}}} 1
+
+# Save it:
+/saveitem custom_skull
+```
+
+### Custom Model Data
+
+```bash
+# Item with custom model:
+/give @s diamond{CustomModelData:1234567} 1
+
+# Save it:
+/saveitem custom_diamond
+
+# Works with resource packs
+```
+
+<Accordion title="Advanced NBT examples">
+  **Unbreakable Tools:**
+  ```bash
+  /give @s netherite_pickaxe{Unbreakable:1b,display:{Name:'"§cUnbreakable Pickaxe"'}} 1
+  /saveitem infinite_pick
+  ```
+  
+  **Attribute Modifiers:**
+  ```bash
+  /give @s diamond_sword{AttributeModifiers:[{AttributeName:"generic.attack_damage",Name:"generic.attack_damage",Amount:20,Operation:0,UUID:[I;1,2,3,4],Slot:"mainhand"}]} 1
+  /saveitem super_sword
+  ```
+  
+  **Fireworks:**
+  ```bash
+  /give @s firework_rocket{Fireworks:{Flight:3,Explosions:[{Type:1,Colors:[I;16711680,255,65280]}]}} 1
+  /saveitem rainbow_firework
+  ```
+  
+  **Custom Food:**
+  ```bash
+  /give @s golden_apple{CustomPotionEffects:[{Id:10,Amplifier:4,Duration:6000}],display:{Name:'"§6Divine Apple"'}} 1
+  /saveitem god_apple
+  ```
+</Accordion>
+
+---
+
+## Common Workflows
+
+<AccordionGroup>
+  <Accordion title="Setting Up a Basic Loot Table">
+    1. Save your items:
+       ```bash
+       # Hold each item and save it
+       /saveitem common_iron
+       /saveitem rare_diamond
+       /saveitem legendary_custom
+       ```
+    
+    2. Verify they're saved:
+       ```bash
+       /saveitem list
+       ```
+    
+    3. Add them to your area:
+       ```bash
+       /saveitem add my_area common_iron 0.8
+       /saveitem add my_area rare_diamond 0.2
+       /saveitem add my_area legendary_custom 0.05
+       ```
+    
+    4. Check area info:
+       ```bash
+       /rainarea info my_area
+       ```
+  </Accordion>
+
+  <Accordion title="Creating a Tiered Reward System">
+    Perfect for different quality tiers:
+    
+    ```bash
+    # Tier 1: Common (80% chance)
+    /saveitem common_reward_1
+    /saveitem common_reward_2
+    /saveitem common_reward_3
+    /saveitem add event common_reward_1 0.8
+    /saveitem add event common_reward_2 0.8
+    /saveitem add event common_reward_3 0.8
+    
+    # Tier 2: Uncommon (40% chance)
+    /saveitem uncommon_reward_1
+    /saveitem uncommon_reward_2
+    /saveitem add event uncommon_reward_1 0.4
+    /saveitem add event uncommon_reward_2 0.4
+    
+    # Tier 3: Rare (15% chance)
+    /saveitem rare_reward
+    /saveitem add event rare_reward 0.15
+    
+    # Tier 4: Legendary (2% chance)
+    /saveitem legendary_reward
+    /saveitem add event legendary_reward 0.02
+    ```
+  </Accordion>
+
+  <Accordion title="Updating Item Configuration">
+    To update an item's probability or replace it:
+    
+    ```bash
+    # Remove old configuration
+    /saveitem removearea my_area old_item
+    
+    # Add with new probability
+    /saveitem add my_area old_item 0.5
+    
+    # Or replace with different item
+    /saveitem add my_area new_item 0.5
+    ```
+    
+    To update the item itself:
+    ```bash
+    # Delete old version
+    /saveitem delete weapon_v1
+    
+    # Save new version with same name
+    /saveitem weapon_v1
+    
+    # Items already in areas will use new version
+    ```
+  </Accordion>
+
+  <Accordion title="Managing Items Across Multiple Areas">
+    ```bash
+    # Save items once
+    /saveitem global_common
+    /saveitem global_rare
+    
+    # Use in multiple areas with different chances
+    /saveitem add area1 global_common 0.9
+    /saveitem add area1 global_rare 0.1
+    
+    /saveitem add area2 global_common 0.7
+    /saveitem add area2 global_rare 0.3
+    
+    /saveitem add area3 global_common 0.5
+    /saveitem add area3 global_rare 0.5
+    ```
+  </Accordion>
+
+  <Accordion title="Seasonal or Event Items">
+    Add temporary items for events:
+    
+    ```bash
+    # Add seasonal items
+    /saveitem halloween_candy
+    /saveitem halloween_mask
+    /saveitem add spawn halloween_candy 0.8
+    /saveitem add spawn halloween_mask 0.3
+    
+    # After event, remove them
+    /saveitem removearea spawn halloween_candy
+    /saveitem removearea spawn halloween_mask
+    
+    # Optionally delete from library
+    /saveitem delete halloween_candy
+    /saveitem delete halloween_mask
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Item not saving">
+    Common issues:
+    
+    1. **No item in hand:**
+       ```bash
+       # Error: No item in hand
+       # Solution: Hold the item in your main hand (not off-hand)
+       ```
+    
+    2. **Air/empty slot:**
+       ```bash
+       # Make sure you're not holding air
+       # Right-click with the item to verify it's selected
+       ```
+    
+    3. **Item already exists:**
+       ```bash
+       # Error: Item already exists
+       # Solution: Delete first, then save
+       /saveitem delete item_name
+       /saveitem item_name
+       ```
+    
+    4. **Permission denied:**
+       ```bash
+       # Ensure you have: raintools.item.save
+       ```
+  </Accordion>
+
+  <Accordion title="Item not spawning in rain">
+    Debug steps:
+    
+    1. **Verify item is saved:**
+       ```bash
+       /saveitem list
+       # Check if your item appears
+       ```
+    
+    2. **Check if item is in area:**
+       ```bash
+       /rainarea info area_name
+       # Look at "Saved Items" count
+       ```
+    
+    3. **Probability too low:**
+       ```bash
+       # If probability is 0.01, you might not see it spawn often
+       # Try higher probability for testing:
+       /saveitem removearea area item
+       /saveitem add area item 1.0  # 100% for testing
+       ```
+    
+    4. **Area configuration:**
+       ```bash
+       /rainarea info area_name
+       # Check:
+       # - Enabled: should be true
+       # - Rain Per Second: should be > 0
+       # - Saved Items: should be > 0
+       ```
+  </Accordion>
+
+  <Accordion title="Wrong item spawning">
+    If the spawned item doesn't match what you saved:
+    
+    1. **Item was updated:**
+       - Delete and re-save to update
+       - Items in areas automatically use latest version
+    
+    2. **Multiple items with similar names:**
+       ```bash
+       /saveitem list
+       # Check for naming conflicts
+       ```
+    
+    3. **NBT data lost:**
+       - This shouldn't happen, but if it does:
+       - Delete and re-save the item
+       - Check server console for errors
+  </Accordion>
+
+  <Accordion title="Cannot add item to area">
+    ```bash
+    # Error: Area not found
+    /rainarea list  # Verify area name
+    
+    # Error: Item not found
+    /saveitem list  # Verify item name
+    
+    # Error: Invalid probability
+    # Must be 0.0 to 1.0
+    /saveitem add area item 0.5  # Not 50, use 0.5 for 50%
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Naming Convention" icon="tag">
+    Use clear, descriptive names:
+    - `rare_diamond_sword` ✅
+    - `rds1` ❌
+    - `boss_legendary_drop` ✅
+    - `item1` ❌
+    
+    Good naming helps with:
+    - Tab completion
+    - Managing large item libraries
+    - Team collaboration
+  </Card>
+  
+  <Card title="Test Probabilities" icon="flask">
+    Before going live:
+    1. Set probability to 1.0 (100%)
+    2. Test that item spawns correctly
+    3. Verify NBT data (name, enchants, etc.)
+    4. Adjust to desired probability
+    
+    This ensures items work before making them rare.
+  </Card>
+  
+  <Card title="Backup Items" icon="floppy-disk">
+    Save copies of important items:
+    - `legendary_sword_v1`
+    - `legendary_sword_v2`
+    - `legendary_sword_backup`
+    
+    Helps with:
+    - Testing changes
+    - Reverting updates
+    - Version control
+  </Card>
+  
+  <Card title="Document Loot Tables" icon="book">
+    Keep notes on your item distribution:
+    ```
+    Event Area:
+    - common (0.8) - Often
+    - uncommon (0.4) - Sometimes  
+    - rare (0.15) - Rarely
+    - legendary (0.02) - Almost never
+    ```
+    
+    Helps balance and tune rewards.
+  </Card>
+</CardGroup>
+
+---
+
+## See Also
+
+- [/rainarea](/api/commands/rainarea) - Manage rain areas
+- [Items Guide](/concepts/saved-items) - Complete guide to saved items
+- [Item Management](/guides/managing-items) - How to manage saved items
+- [Configuration](/configuration/config-file) - Configuration file reference

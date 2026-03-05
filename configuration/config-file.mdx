@@ -1,0 +1,289 @@
+---
+title: Main Configuration File
+description: Complete guide to config.yml settings
+---
+
+# Main Configuration File
+
+The `config.yml` file is the primary configuration file for RainTools, containing general settings, default area values, performance limits, and customizable messages.
+
+## File Location
+
+The configuration file is located at:
+```
+plugins/RainTools/config.yml
+```
+
+The file is automatically created when the plugin first loads. If you delete it, it will be regenerated with default values on the next server restart.
+
+## Complete Configuration Structure
+
+Here is the complete default `config.yml` file:
+
+```yaml
+# Rain Tools - Configuración
+# Plugin de lluvia de items y experiencia para Minecraft 1.20.4
+
+# Configuración general
+general:
+  # Versión de la configuración
+  config-version: 1.0
+  
+  # Idioma del plugin (actualmente solo español)
+  language: "en"
+  
+  # Habilitar debug logging
+  debug: false
+
+# Configuración de las áreas de lluvia
+areas:
+  # Configuración por defecto para nuevas áreas
+  default:
+    # Si las áreas están habilitadas por defecto
+    enabled: true
+    
+    # Si las áreas son de una sola vez por defecto
+    one-time: false
+    
+    # Cantidad de items por bloque por defecto
+    items-per-block: 1
+    
+    # Timer en ticks (20 ticks = 1 segundo)
+    timer-ticks: 20
+    
+    # Cantidad de lluvia por segundo
+    rain-per-second: 1
+    
+    # Configuración de orbes de experiencia por defecto
+    experience-orbs: 1
+    min-exp: 1
+    max-exp: 5
+
+# Configuración de items
+items:
+  # Límite máximo de items guardados
+  max-saved-items: 100
+  
+  # Serialización de items (mantener NBT tags)
+  preserve-nbt: true
+
+# Configuración de rendimiento
+performance:
+  # Límite máximo de áreas activas simultáneamente
+  max-active-areas: 10
+  
+  # Límite máximo de items que pueden caer por tick
+  max-items-per-tick: 50
+  
+  # Límite máximo de entidades que pueden spawnearse por tick
+  max-entities-per-tick: 20
+
+# Mensajes del plugin (personalizables)
+messages:
+  prefix: "§6[Rain Tools] "
+  no-permission: "§cNo tienes permiso para usar este comando."
+  area-created: "§aÁrea '{area}' creada exitosamente."
+  area-deleted: "§aÁrea '{area}' eliminada exitosamente."
+  area-not-found: "§cNo se encontró el área '{area}'."
+  item-saved: "§aItem '{item}' guardado exitosamente."
+  item-deleted: "§aItem '{item}' eliminado exitosamente."
+  item-not-found: "§cNo se encontró el item '{item}'."
+  rain-started: "§aLluvia iniciada en el área '{area}'."
+  rain-stopped: "§aLluvia detenida en el área '{area}'."
+```
+
+## General Settings
+
+The `general` section contains plugin-wide settings.
+
+<ParamField path="general.config-version" type="string" default="1.0">
+  Configuration file version. Used for automatic migration when the plugin updates. Do not modify this value manually.
+</ParamField>
+
+<ParamField path="general.language" type="string" default="en">
+  Language code for the plugin interface. Supported values:
+  - `en` - English
+  - `es` - Spanish (Español)
+  
+  Language files are stored in `plugins/RainTools/lang/` and can be customized. See [Messages](/configuration/messages) for details.
+</ParamField>
+
+<ParamField path="general.debug" type="boolean" default="false">
+  Enable debug logging to console. Useful for troubleshooting issues. When enabled, the plugin will log:
+  - Area creation and deletion events
+  - Rain start/stop events
+  - Item spawn attempts
+  - Entity spawn attempts
+  - Configuration loading/saving
+  
+  **Warning:** Debug mode can generate a large amount of console output.
+</ParamField>
+
+## Area Defaults
+
+The `areas.default` section defines default values for newly created rain areas. These values are applied when you create a new area using `/rainarea create`.
+
+<ParamField path="areas.default.enabled" type="boolean" default="true">
+  Whether new areas are enabled by default. Disabled areas will not start rain even when commanded.
+</ParamField>
+
+<ParamField path="areas.default.one-time" type="boolean" default="false">
+  Whether new areas are one-time use by default. One-time areas can only rain once and will be automatically disabled after the first rain cycle.
+</ParamField>
+
+<ParamField path="areas.default.items-per-block" type="integer" default="1">
+  Number of items that can drop per block in the area. Higher values create denser item rain.
+  
+  **Example values:**
+  - `1` - Sparse rain
+  - `5` - Medium density
+  - `10` - Heavy rain
+</ParamField>
+
+<ParamField path="areas.default.timer-ticks" type="integer" default="20">
+  Time between rain cycles in ticks. Since Minecraft runs at 20 ticks per second:
+  - `20` = 1 second
+  - `40` = 2 seconds
+  - `10` = 0.5 seconds
+  
+  This controls how frequently the rain spawning logic executes.
+</ParamField>
+
+<ParamField path="areas.default.rain-per-second" type="integer" default="1">
+  Number of items/entities to spawn per second per block. Combined with `timer-ticks` to determine spawn rate.
+</ParamField>
+
+<ParamField path="areas.default.experience-orbs" type="integer" default="1">
+  Number of experience orbs to spawn per rain cycle. Set to `0` to disable experience rain.
+</ParamField>
+
+<ParamField path="areas.default.min-exp" type="integer" default="1">
+  Minimum experience points per orb. Each spawned experience orb will contain a random value between `min-exp` and `max-exp`.
+</ParamField>
+
+<ParamField path="areas.default.max-exp" type="integer" default="5">
+  Maximum experience points per orb.
+</ParamField>
+
+## Item Settings
+
+The `items` section controls how items are saved and managed.
+
+<ParamField path="items.max-saved-items" type="integer" default="100">
+  Maximum number of unique items that can be saved using `/saveitem`. This limit prevents excessive memory usage.
+  
+  Saved items are stored in `plugins/RainTools/items.yml`.
+</ParamField>
+
+<ParamField path="items.preserve-nbt" type="boolean" default="true">
+  Whether to preserve NBT data when saving items. When enabled:
+  - Custom item names are preserved
+  - Lore is preserved
+  - Enchantments are preserved
+  - Custom attributes are preserved
+  - Item flags are preserved
+  
+  Disabling this will only save the basic material and amount.
+</ParamField>
+
+## Performance Settings
+
+The `performance` section contains limits to prevent server lag.
+
+<ParamField path="performance.max-active-areas" type="integer" default="10">
+  Maximum number of areas that can have active rain simultaneously. When this limit is reached, attempting to start rain in additional areas will fail.
+  
+  **Recommendation:** Adjust based on your server's performance:
+  - Low-end servers: `5-10`
+  - Medium servers: `10-20`
+  - High-end servers: `20+`
+</ParamField>
+
+<ParamField path="performance.max-items-per-tick" type="integer" default="50">
+  Maximum number of items that can spawn per server tick. This prevents lag spikes from spawning too many items at once.
+  
+  If rain attempts to spawn more items than this limit, excess spawns are queued for the next tick.
+</ParamField>
+
+<ParamField path="performance.max-entities-per-tick" type="integer" default="20">
+  Maximum number of entities (mobs) that can spawn per server tick. Similar to `max-items-per-tick` but for entity spawning.
+</ParamField>
+
+## Legacy Messages Section
+
+<Warning>
+  The `messages` section in `config.yml` is deprecated. While it still works, we recommend using the language file system instead. See [Messages](/configuration/messages) for the modern approach.
+</Warning>
+
+The `messages` section provides basic message customization directly in `config.yml`. These messages support:
+- Minecraft color codes (`§` or `&`)
+- Placeholders like `{area}`, `{item}`, etc.
+
+For full message customization with multi-language support, use the language files in `plugins/RainTools/lang/`.
+
+## Applying Configuration Changes
+
+After editing `config.yml`, reload the configuration using:
+
+```bash
+/rainarea reload
+```
+
+This reloads all configuration files including:
+- `config.yml` (main configuration)
+- `areas.yml` (saved areas)
+- `items.yml` (saved items)
+- Language files
+
+<Note>
+  Changes to performance settings and defaults only affect new operations. Existing areas retain their individual settings stored in `areas.yml`.
+</Note>
+
+## Related Configuration Files
+
+RainTools uses multiple configuration files:
+
+- **config.yml** - Main configuration (this page)
+- **areas.yml** - Saved rain areas (see [Area Properties](/configuration/area-properties))
+- **items.yml** - Saved items
+- **lang/en.yml** - English messages (see [Messages](/configuration/messages))
+- **lang/es.yml** - Spanish messages
+
+## Example Configurations
+
+### High-Performance Server
+
+```yaml
+performance:
+  max-active-areas: 25
+  max-items-per-tick: 100
+  max-entities-per-tick: 50
+```
+
+### Conservative/Low-End Server
+
+```yaml
+performance:
+  max-active-areas: 5
+  max-items-per-tick: 20
+  max-entities-per-tick: 10
+
+areas:
+  default:
+    items-per-block: 1
+    timer-ticks: 40  # 2 seconds
+    rain-per-second: 1
+```
+
+### Rapid Heavy Rain
+
+```yaml
+areas:
+  default:
+    items-per-block: 10
+    timer-ticks: 10  # 0.5 seconds
+    rain-per-second: 5
+    experience-orbs: 5
+    min-exp: 5
+    max-exp: 20
+```

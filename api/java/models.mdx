@@ -1,0 +1,692 @@
+---
+title: 'Data Models'
+description: 'API reference for RainTools data model classes'
+icon: 'database'
+---
+
+## Overview
+
+RainTools provides two main data model classes that represent the core data structures used by the plugin.
+
+**Package**: `enchanting.tools.rainTools.models`
+
+## RainArea
+
+Represents a three-dimensional area where items, entities, and experience can rain down.
+
+**Class**: `enchanting.tools.rainTools.models.RainArea`
+
+### Constructor
+
+```java
+public RainArea(String name, Location pos1, Location pos2)
+```
+
+<ParamField path="name" type="String" required>
+  Unique identifier for the rain area
+</ParamField>
+
+<ParamField path="pos1" type="Location" required>
+  First corner of the area (any corner)
+</ParamField>
+
+<ParamField path="pos2" type="Location" required>
+  Opposite corner of the area (must be in the same world)
+</ParamField>
+
+**Example**:
+
+```java
+import enchanting.tools.rainTools.models.RainArea;
+import org.bukkit.Location;
+import org.bukkit.World;
+
+World world = Bukkit.getWorld("world");
+Location corner1 = new Location(world, 0, 64, 0);
+Location corner2 = new Location(world, 50, 100, 50);
+
+RainArea area = new RainArea("spawn_area", corner1, corner2);
+```
+
+### Basic Properties
+
+#### Name
+
+```java
+public String getName()
+public void setName(String name)
+```
+
+The unique identifier for this rain area.
+
+#### Positions
+
+```java
+public Location getPos1()
+public void setPos1(Location pos1)
+
+public Location getPos2()
+public void setPos2(Location pos2)
+```
+
+The two corner positions that define the area boundaries.
+
+#### World
+
+```java
+public World getWorld()
+public void setWorld(World world)
+```
+
+The world where this area exists.
+
+### Configuration Properties
+
+#### Enabled
+
+```java
+public boolean isEnabled()
+public void setEnabled(boolean enabled)
+```
+
+Whether the area is enabled. Disabled areas cannot start rain.
+
+**Default**: `true`
+
+**Example**:
+
+```java
+RainArea area = areaManager.getArea("spawn_area");
+
+// Disable the area temporarily
+area.setEnabled(false);
+areaManager.saveArea(area);
+
+// Later, enable it again
+area.setEnabled(true);
+areaManager.saveArea(area);
+```
+
+#### One Time
+
+```java
+public boolean isOneTime()
+public void setOneTime(boolean oneTime)
+```
+
+If `true`, the area will only rain once, then automatically stop after 5 seconds. If `false`, rain continues until manually stopped.
+
+**Default**: `false`
+
+**Example**:
+
+```java
+// Create a one-time event area
+RainArea eventArea = new RainArea("special_event", pos1, pos2);
+eventArea.setOneTime(true);
+eventArea.setRainPerSecond(20); // High intensity for the 5-second duration
+
+areaManager.saveArea(eventArea);
+rainManager.startRain(eventArea);
+// Rain will automatically stop after 5 seconds
+```
+
+#### Items Per Block
+
+```java
+public int getItemsPerBlock()
+public void setItemsPerBlock(int itemsPerBlock)
+```
+
+Number of item stacks to spawn per location during each rain event.
+
+**Default**: `1`
+
+**Example**:
+
+```java
+area.setItemsPerBlock(3); // Spawn 3 items per location
+```
+
+#### Timer Ticks
+
+```java
+public long getTimerTicks()
+public void setTimerTicks(long timerTicks)
+```
+
+Delay between rain events in ticks (20 ticks = 1 second).
+
+**Default**: `20` (1 second)
+
+**Example**:
+
+```java
+// Rain every 2 seconds
+area.setTimerTicks(40);
+
+// Rain twice per second
+area.setTimerTicks(10);
+
+// Rain every 5 seconds
+area.setTimerTicks(100);
+```
+
+#### Rain Per Second
+
+```java
+public int getRainPerSecond()
+public void setRainPerSecond(int rainPerSecond)
+```
+
+Number of spawn locations per rain event. Combined with timer ticks, this controls the intensity.
+
+**Default**: `1`
+
+**Example**:
+
+```java
+// Intense rain: 10 spawns per event
+area.setRainPerSecond(10);
+area.setTimerTicks(20); // Every second = 10 items/second
+
+// Moderate rain: 5 spawns per event, every 2 seconds
+area.setRainPerSecond(5);
+area.setTimerTicks(40); // = 2.5 items/second average
+```
+
+### Item Configuration
+
+#### Saved Items
+
+```java
+public Map<String, Double> getSavedItems()
+public void setSavedItems(Map<String, Double> savedItems)
+```
+
+Map of saved item names to their spawn probability (0.0 to 1.0).
+
+**Example**:
+
+```java
+import java.util.Map;
+
+// Add items with different probabilities
+Map<String, Double> items = area.getSavedItems();
+items.put("common_coin", 0.8);        // 80% chance
+items.put("rare_gem", 0.2);           // 20% chance
+items.put("legendary_sword", 0.01);   // 1% chance
+
+// Or set all at once
+Map<String, Double> newItems = new HashMap<>();
+newItems.put("diamond", 0.1);
+newItems.put("emerald", 0.05);
+area.setSavedItems(newItems);
+
+areaManager.saveArea(area);
+```
+
+### Experience Configuration
+
+#### Experience Orbs
+
+```java
+public int getExperienceOrbs()
+public void setExperienceOrbs(int experienceOrbs)
+```
+
+Number of experience orbs to spawn per rain event.
+
+**Default**: `0` (no experience)
+
+#### Min/Max Experience Per Orb
+
+```java
+public int getMinExpPerOrb()
+public void setMinExpPerOrb(int minExpPerOrb)
+
+public int getMaxExpPerOrb()
+public void setMaxExpPerOrb(int maxExpPerOrb)
+```
+
+Range of experience points per orb. A random value between min and max is chosen for each orb.
+
+**Default**: Min = `1`, Max = `5`
+
+**Example**:
+
+```java
+// Configure XP farm area
+area.setExperienceOrbs(5);      // 5 orbs per rain event
+area.setMinExpPerOrb(10);       // Minimum 10 XP per orb
+area.setMaxExpPerOrb(50);       // Maximum 50 XP per orb
+area.setRainPerSecond(2);       // 2 rain events per second
+area.setTimerTicks(20);
+
+// This gives 10 orbs per second, 100-500 XP per second
+
+areaManager.saveArea(area);
+```
+
+### Entity Configuration
+
+#### Entities
+
+```java
+public Map<EntityType, Double> getEntities()
+public void setEntities(Map<EntityType, Double> entities)
+```
+
+Map of entity types to their spawn probability (0.0 to 1.0).
+
+**Example**:
+
+```java
+import org.bukkit.entity.EntityType;
+import java.util.HashMap;
+import java.util.Map;
+
+// Add entities with probabilities
+Map<EntityType, Double> entities = area.getEntities();
+entities.put(EntityType.ZOMBIE, 0.3);      // 30% chance
+entities.put(EntityType.SKELETON, 0.3);    // 30% chance
+entities.put(EntityType.CREEPER, 0.2);     // 20% chance
+entities.put(EntityType.SPIDER, 0.15);     // 15% chance
+entities.put(EntityType.ENDERMAN, 0.05);   // 5% chance
+
+areaManager.saveArea(area);
+```
+
+<Warning>
+Some entity types are filtered and cannot be spawned:
+- PLAYER
+- ARMOR_STAND
+- ITEM_FRAME
+- PAINTING
+- Non-spawnable entities
+- Non-living entities
+</Warning>
+
+### State Properties
+
+#### Is Raining
+
+```java
+public boolean isRaining()
+public void setRaining(boolean raining)
+```
+
+Whether rain is currently active in this area.
+
+<Note>
+This is typically set automatically by the RainManager. You should use `rainManager.startRain()` and `rainManager.stopRain()` instead of setting this directly.
+</Note>
+
+#### Has Rained Once
+
+```java
+public boolean hasRainedOnce()
+public void setHasRainedOnce(boolean hasRainedOnce)
+```
+
+For one-time areas, tracks whether the area has already rained.
+
+### Utility Methods
+
+#### isLocationInArea
+
+Check if a location is within this area's boundaries.
+
+```java
+public boolean isLocationInArea(Location loc)
+```
+
+<ParamField path="loc" type="Location" required>
+  The location to check
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if the location is inside the area, `false` otherwise
+</ResponseField>
+
+**Example**:
+
+```java
+RainArea area = areaManager.getArea("spawn_area");
+Location playerLoc = player.getLocation();
+
+if (area.isLocationInArea(playerLoc)) {
+    player.sendMessage("You are inside the " + area.getName() + " area!");
+}
+```
+
+#### getVolume
+
+Calculate the volume of the area in blocks.
+
+```java
+public int getVolume()
+```
+
+<ResponseField name="int" type="int">
+  The volume in blocks (width × height × depth)
+</ResponseField>
+
+**Example**:
+
+```java
+RainArea area = areaManager.getArea("spawn_area");
+int volume = area.getVolume();
+
+sender.sendMessage("Area volume: " + volume + " blocks");
+
+if (volume > 100000) {
+    sender.sendMessage("§eWarning: Large area may affect performance!");
+}
+```
+
+### Complete Example
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.AreaManager;
+import enchanting.tools.rainTools.managers.RainManager;
+import enchanting.tools.rainTools.models.RainArea;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.EntityType;
+
+public class RainAreaExample {
+    
+    public static void createRewardArea() {
+        RainTools rainTools = RainTools.getInstance();
+        AreaManager areaManager = rainTools.getAreaManager();
+        RainManager rainManager = rainTools.getRainManager();
+        
+        // Define area boundaries
+        World world = Bukkit.getWorld("world");
+        Location corner1 = new Location(world, 0, 64, 0);
+        Location corner2 = new Location(world, 50, 100, 50);
+        
+        // Create the area
+        RainArea rewardArea = new RainArea("daily_reward", corner1, corner2);
+        
+        // Configure basic settings
+        rewardArea.setEnabled(true);
+        rewardArea.setOneTime(false);        // Repeating rain
+        rewardArea.setRainPerSecond(5);      // 5 spawns per event
+        rewardArea.setTimerTicks(20);        // Every 1 second
+        rewardArea.setItemsPerBlock(1);
+        
+        // Configure items (assumes these were saved earlier)
+        rewardArea.getSavedItems().put("gold_coin", 0.5);        // 50%
+        rewardArea.getSavedItems().put("silver_coin", 0.8);      // 80%
+        rewardArea.getSavedItems().put("diamond_reward", 0.1);   // 10%
+        rewardArea.getSavedItems().put("legendary_item", 0.01);  // 1%
+        
+        // Configure experience
+        rewardArea.setExperienceOrbs(3);
+        rewardArea.setMinExpPerOrb(5);
+        rewardArea.setMaxExpPerOrb(20);
+        
+        // Add some friendly entities
+        rewardArea.getEntities().put(EntityType.VILLAGER, 0.05);  // 5%
+        rewardArea.getEntities().put(EntityType.PIG, 0.1);        // 10%
+        
+        // Save and start
+        areaManager.saveArea(rewardArea);
+        
+        Bukkit.getLogger().info("Created reward area:");
+        Bukkit.getLogger().info("- Name: " + rewardArea.getName());
+        Bukkit.getLogger().info("- Volume: " + rewardArea.getVolume() + " blocks");
+        Bukkit.getLogger().info("- World: " + rewardArea.getWorld().getName());
+        
+        // Start the rain
+        boolean started = rainManager.startRain(rewardArea);
+        if (started) {
+            Bukkit.broadcastMessage("§6Daily rewards are now raining at spawn!");
+        }
+    }
+}
+```
+
+---
+
+## SavedItem
+
+Represents a saved ItemStack with all its properties preserved for later use.
+
+**Class**: `enchanting.tools.rainTools.models.SavedItem`
+
+### Constructor
+
+```java
+public SavedItem(String name, ItemStack itemStack)
+```
+
+<ParamField path="name" type="String" required>
+  Unique identifier for the saved item
+</ParamField>
+
+<ParamField path="itemStack" type="ItemStack" required>
+  The ItemStack to save
+</ParamField>
+
+<Note>
+You typically don't create SavedItem instances directly. Use `ItemManager.saveItem()` instead.
+</Note>
+
+**Example**:
+
+```java
+import enchanting.tools.rainTools.models.SavedItem;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+
+// Direct creation (not recommended)
+ItemStack item = new ItemStack(Material.DIAMOND_SWORD);
+SavedItem savedItem = new SavedItem("my_sword", item);
+
+// Recommended: Use ItemManager
+itemManager.saveItem("my_sword", item);
+```
+
+### Properties
+
+#### Name
+
+```java
+public String getName()
+public void setName(String name)
+```
+
+The unique identifier for this saved item.
+
+#### Material
+
+```java
+public Material getMaterial()
+public void setMaterial(Material material)
+```
+
+The material type of the item.
+
+#### Amount
+
+```java
+public int getAmount()
+public void setAmount(int amount)
+```
+
+The stack size of the item.
+
+#### Display Name
+
+```java
+public String getDisplayName()
+public void setDisplayName(String displayName)
+```
+
+The custom display name of the item (can be null).
+
+#### Lore
+
+```java
+public List<String> getLore()
+public void setLore(List<String> lore)
+```
+
+The item's lore (description lines). Can be null or empty.
+
+#### Enchantments
+
+```java
+public Map<String, Integer> getEnchantments()
+public void setEnchantments(Map<String, Integer> enchantments)
+```
+
+Map of enchantment keys to their levels.
+
+<Info>
+Enchantment keys are stored as strings in the format: `"minecraft:sharpness"`, `"minecraft:protection"`, etc.
+</Info>
+
+#### Serialized ItemStack
+
+```java
+public String getSerializedItemStack()
+public void setSerializedItemStack(String serializedItemStack)
+```
+
+Base64-encoded serialized ItemStack data. Preserves all NBT data including custom model data, attributes, etc.
+
+### Methods
+
+#### toItemStack
+
+Convert the SavedItem back to an ItemStack.
+
+```java
+public ItemStack toItemStack()
+```
+
+<ResponseField name="ItemStack" type="ItemStack">
+  A fully reconstructed ItemStack with all properties
+</ResponseField>
+
+**Example**:
+
+```java
+import enchanting.tools.rainTools.models.SavedItem;
+import org.bukkit.inventory.ItemStack;
+
+SavedItem savedItem = itemManager.getSavedItem("legendary_sword");
+
+if (savedItem != null) {
+    ItemStack item = savedItem.toItemStack();
+    
+    // Give to player
+    player.getInventory().addItem(item);
+    
+    // Or use in other ways
+    player.getWorld().dropItem(player.getLocation(), item);
+}
+```
+
+### Serialization Details
+
+<Info>
+**Serialization Process**:
+
+1. When a SavedItem is created, the ItemStack is serialized to Base64 using Bukkit's serialization system
+2. Basic properties (material, amount, display name, lore, enchantments) are also stored separately as a fallback
+3. When converting back to ItemStack, it first tries to deserialize from the Base64 string
+4. If deserialization fails, it reconstructs the item manually from the basic properties
+
+This dual approach ensures maximum data preservation while maintaining compatibility.
+</Info>
+
+### Complete Example
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.ItemManager;
+import enchanting.tools.rainTools.models.SavedItem;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+public class SavedItemExample {
+    
+    public static void demonstrateSavedItem() {
+        ItemManager itemManager = RainTools.getInstance().getItemManager();
+        
+        // Create a complex item
+        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+        ItemMeta meta = sword.getItemMeta();
+        
+        meta.setDisplayName("§6§lExcalibur");
+        meta.setLore(Arrays.asList(
+            "§7The legendary sword of King Arthur",
+            "",
+            "§9§l+50 Attack Damage",
+            "§9§l+20% Critical Strike Chance",
+            "",
+            "§6§lLEGENDARY SWORD"
+        ));
+        
+        meta.addEnchant(Enchantment.DAMAGE_ALL, 10, true);
+        meta.addEnchant(Enchantment.FIRE_ASPECT, 3, true);
+        meta.addEnchant(Enchantment.DURABILITY, 5, true);
+        meta.addEnchant(Enchantment.MENDING, 1, true);
+        
+        sword.setItemMeta(meta);
+        
+        // Save the item
+        itemManager.saveItem("excalibur", sword);
+        
+        // Later, retrieve and inspect the saved item
+        SavedItem savedItem = itemManager.getSavedItem("excalibur");
+        
+        if (savedItem != null) {
+            System.out.println("Saved Item Information:");
+            System.out.println("Name: " + savedItem.getName());
+            System.out.println("Material: " + savedItem.getMaterial());
+            System.out.println("Amount: " + savedItem.getAmount());
+            System.out.println("Display Name: " + savedItem.getDisplayName());
+            
+            List<String> lore = savedItem.getLore();
+            if (lore != null) {
+                System.out.println("Lore:");
+                for (String line : lore) {
+                    System.out.println("  " + line);
+                }
+            }
+            
+            Map<String, Integer> enchants = savedItem.getEnchantments();
+            if (enchants != null) {
+                System.out.println("Enchantments:");
+                for (Map.Entry<String, Integer> entry : enchants.entrySet()) {
+                    System.out.println("  " + entry.getKey() + " " + entry.getValue());
+                }
+            }
+            
+            // Convert back to ItemStack
+            ItemStack reconstructed = savedItem.toItemStack();
+            // This ItemStack is identical to the original
+        }
+    }
+}
+```
+
+## See Also
+
+- [AreaManager](/api/java/area-manager) - Managing RainArea instances
+- [ItemManager](/api/java/item-manager) - Managing SavedItem instances
+- [RainManager](/api/java/rain-manager) - Using areas to create rain

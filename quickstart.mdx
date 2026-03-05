@@ -1,80 +1,339 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick Start"
+description: "Create your first rain area in minutes with this step-by-step guide"
 ---
 
-## Get started in three steps
+## Get Started in 5 Minutes
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide will walk you through creating your first rain area from installation to your first working item rain.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Before starting, make sure you have installed RainTools on your server. See the [Installation Guide](/installation) if you haven't already.
 </Note>
+
+## Step-by-Step Tutorial
+
+<Steps>
+  <Step title="Select Your Area Boundaries">
+    Use a **Diamond Axe** to select two corners of your rain area:
+    
+    - **Left-click** a block to set the first position
+    - **Right-click** a block to set the second position
+    
+    ```
+    You should see messages like:
+    [Rain Tools] First position selected: X, Y, Z
+    [Rain Tools] Second position selected: X, Y, Z
+    [Rain Tools] Area selected: 1000 blocks
+    ```
+    
+    <Tip>
+      The selection works similar to WorldEdit - you're defining a cuboid region between two points.
+    </Tip>
+  </Step>
+
+  <Step title="Create the Rain Area">
+    Once you've selected both positions, create your rain area:
+    
+    ```bash
+    /rainarea create my_first_area
+    ```
+    
+    You'll see confirmation:
+    ```
+    [Rain Tools] Area 'my_first_area' created successfully.
+    [Rain Tools] Volume: 1000 blocks.
+    ```
+    
+    <Info>
+      You can also use the alias `/ra` instead of `/rainarea` for shorter commands.
+    </Info>
+  </Step>
+
+  <Step title="Save an Item">
+    Hold the item you want to rain down in your hand, then save it:
+    
+    ```bash
+    /saveitem diamond
+    ```
+    
+    This saves the item with all its properties (enchantments, lore, NBT data, etc.).
+    
+    <Tip>
+      You can save any item including custom items with enchantments, names, and lore.
+    </Tip>
+  </Step>
+
+  <Step title="Add the Item to Your Area">
+    Now add the saved item to your rain area with a probability:
+    
+    ```bash
+    /saveitem add my_first_area diamond 0.5
+    ```
+    
+    The probability `0.5` means 50% chance per rain tick. Common values:
+    - `1.0` = 100% (always drops)
+    - `0.5` = 50% chance
+    - `0.25` = 25% chance
+    - `0.1` = 10% chance (rare)
+  </Step>
+
+  <Step title="Configure Experience Orbs (Optional)">
+    Add experience orbs to make it more rewarding:
+    
+    ```bash
+    /rainarea config my_first_area exprorbs 3
+    /rainarea config my_first_area minexp 5
+    /rainarea config my_first_area maxexp 15
+    ```
+    
+    This will drop 3 experience orbs per rain event, each with 5-15 XP.
+  </Step>
+
+  <Step title="Start the Rain">
+    Now activate your rain area:
+    
+    ```bash
+    /rainarea start my_first_area
+    ```
+    
+    Stand in your area and watch items fall from the sky!
+  </Step>
+
+  <Step title="Stop the Rain">
+    When you're done, stop the rain:
+    
+    ```bash
+    /rainarea stop my_first_area
+    ```
+    
+    <Info>
+      Entities are automatically cleaned up after 20 minutes if you forget to stop the rain.
+    </Info>
+  </Step>
+
+  <Step title="View Area Information">
+    Check your area's configuration anytime:
+    
+    ```bash
+    /rainarea info my_first_area
+    ```
+    
+    This shows all settings, items, and current status.
+  </Step>
+</Steps>
+
+## Complete Example
+
+Here's a complete treasure room setup:
+
+<Tabs>
+  <Tab title="Treasure Room">
+    ```bash
+    # Select area with Diamond Axe (left-click, right-click)
+    
+    # Create the area
+    /rainarea create treasure_room
+    
+    # Save various treasure items
+    /saveitem gold_ingot
+    /saveitem diamond
+    /saveitem emerald
+    
+    # Add items with different rarities
+    /saveitem add treasure_room gold_ingot 0.8    # Common (80%)
+    /saveitem add treasure_room diamond 0.3       # Uncommon (30%)
+    /saveitem add treasure_room emerald 0.1       # Rare (10%)
+    
+    # Configure experience
+    /rainarea config treasure_room exprorbs 5
+    /rainarea config treasure_room minexp 10
+    /rainarea config treasure_room maxexp 30
+    
+    # Set rain speed
+    /rainarea config treasure_room rainpersecond 3
+    
+    # Start the treasure rain!
+    /rainarea start treasure_room
+    ```
+  </Tab>
+
+  <Tab title="Boss Reward Area">
+    ```bash
+    # Create one-time reward area for boss defeat
+    /rainarea create boss_rewards
+    
+    # Make it one-time only
+    /rainarea config boss_rewards onetime true
+    
+    # Save epic loot
+    /saveitem epic_sword
+    /saveitem rare_armor
+    /saveitem boss_key
+    
+    # Add guaranteed drops
+    /saveitem add boss_rewards epic_sword 1.0
+    /saveitem add boss_rewards rare_armor 0.7
+    /saveitem add boss_rewards boss_key 1.0
+    
+    # Massive XP reward
+    /rainarea config boss_rewards exprorbs 10
+    /rainarea config boss_rewards minexp 50
+    /rainarea config boss_rewards maxexp 100
+    
+    # Start when boss is defeated
+    /rainarea start boss_rewards
+    ```
+  </Tab>
+
+  <Tab title="Event Drop Zone">
+    ```bash
+    # Create event area with custom timer
+    /rainarea create event_drops
+    
+    # Rapid drops (every 10 ticks = 0.5 seconds)
+    /rainarea config event_drops timer 10
+    /rainarea config event_drops rainpersecond 5
+    
+    # Multiple items per block
+    /rainarea config event_drops itemsperblock 3
+    
+    # Save event items
+    /saveitem event_token
+    /saveitem prize_ticket
+    
+    # Add with good drop rates
+    /saveitem add event_drops event_token 0.6
+    /saveitem add event_drops prize_ticket 0.4
+    
+    # Start the event
+    /rainarea start event_drops
+    ```
+  </Tab>
+</Tabs>
+
+## Verify Everything Works
+
+<AccordionGroup>
+  <Accordion title="Check Area Status">
+    Use `/rainarea list` to see all your areas and their status:
+    ```
+    [Rain Tools] Rain Areas:
+    - my_first_area (ACTIVE) (Volume: 1000 blocks)
+    - treasure_room (INACTIVE) (Volume: 2500 blocks)
+    ```
+  </Accordion>
+
+  <Accordion title="View Saved Items">
+    Use `/saveitem list` to see all saved items:
+    ```
+    [Rain Tools] Saved Items:
+    - diamond
+    - gold_ingot
+    - emerald
+    ```
+  </Accordion>
+
+  <Accordion title="Check Configuration">
+    Use `/rainarea info <area>` to see detailed information:
+    ```
+    [Rain Tools] Area Information: my_first_area
+    World: world
+    Position 1: 100, 64, 200
+    Position 2: 110, 74, 210
+    Enabled: true
+    One-time: false
+    Items per block: 1
+    Timer ticks: 20
+    Rain per second: 1
+    Experience orbs: 3
+    Saved items: 1
+    ```
+  </Accordion>
+
+  <Accordion title="Test Your Area">
+    1. Stand inside your rain area
+    2. Run `/rainarea start <area>`
+    3. You should see items and XP orbs falling
+    4. Run `/rainarea stop <area>` when done
+  </Accordion>
+</AccordionGroup>
+
+## Configuration Reference
+
+### Common Area Properties
+
+| Property | Command | Type | Default | Description |
+|----------|---------|------|---------|-------------|
+| Enabled | `/rainarea config <area> enabled <true\|false>` | Boolean | true | Enable/disable the area |
+| One-time | `/rainarea config <area> onetime <true\|false>` | Boolean | false | Area works only once |
+| Items per block | `/rainarea config <area> itemsperblock <number>` | Integer | 1 | Items spawned per drop |
+| Timer | `/rainarea config <area> timer <ticks>` | Long | 20 | Delay between rain events (20 ticks = 1 second) |
+| Rain per second | `/rainarea config <area> rainpersecond <number>` | Integer | 1 | Number of spawn attempts per interval |
+| XP orbs | `/rainarea config <area> exprorbs <number>` | Integer | 0 | Number of XP orbs to spawn |
+| Min XP | `/rainarea config <area> minexp <number>` | Integer | 1 | Minimum XP per orb |
+| Max XP | `/rainarea config <area> maxexp <number>` | Integer | 5 | Maximum XP per orb |
+
+## Common Patterns
+
+<CardGroup cols={2}>
+  <Card title="Loot Showers" icon="treasure-chest">
+    High `rainpersecond` (3-5) with multiple items at different probabilities for exciting loot events
+  </Card>
+  <Card title="Reward Areas" icon="gift">
+    One-time areas with guaranteed drops (`probability: 1.0`) for quest completions
+  </Card>
+  <Card title="Resource Farms" icon="wheat">
+    Slow, steady rain (`timer: 40`) with common items for passive resource generation
+  </Card>
+  <Card title="Boss Arenas" icon="dragon">
+    One-time, high-value drops with massive XP rewards for defeating bosses
+  </Card>
+</CardGroup>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Creating Areas" icon="map-location-dot" href="/guides/creating-areas">
+    Learn advanced area creation techniques
+  </Card>
+  <Card title="Configuring Areas" icon="sliders" href="/guides/configuring-areas">
+    Master all configuration options
+  </Card>
+  <Card title="Managing Items" icon="box" href="/guides/managing-items">
+    Work with complex items and NBT data
+  </Card>
+  <Card title="Permissions" icon="lock" href="/guides/permissions">
+    Set up permissions for your server
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Items aren't dropping">
+    - Check that the area is enabled: `/rainarea info <area>`
+    - Verify you've added items: `/saveitem list`
+    - Make sure probability isn't too low (try 1.0 first)
+    - Check if area is one-time and already used
+  </Accordion>
+
+  <Accordion title="Can't select area">
+    - Make sure you're using a Diamond Axe
+    - Verify you have permission: `raintools.area.create`
+    - Check that both positions are in the same world
+  </Accordion>
+
+  <Accordion title="Rain stops immediately">
+    - One-time areas stop after 5 seconds by design
+    - Check `onetime` setting: `/rainarea info <area>`
+    - Reset one-time status: `/rainarea config <area> resetonetime true`
+  </Accordion>
+
+  <Accordion title="Too many entities">
+    - Lower `rainpersecond` value
+    - Increase `timer` value (more ticks = slower)
+    - Reduce number of items or probability
+    - Entities auto-cleanup after 20 minutes
+  </Accordion>
+</AccordionGroup>

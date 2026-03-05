@@ -1,0 +1,217 @@
+---
+title: Creating Rain Areas
+description: Learn how to create and set up rain areas in RainTools
+---
+
+## Overview
+
+Rain areas are defined regions where items, experience orbs, and entities can rain down. Before creating an area, you need to select two corner positions that define the cuboid region.
+
+## Selecting Area Boundaries
+
+<Note>
+RainTools uses WorldEdit or a similar selection tool to define area boundaries. Make sure you have WorldEdit installed and have selected two positions before creating an area.
+</Note>
+
+<Steps>
+  <Step title="Select the first position">
+    Use WorldEdit's position selection tool (typically a wooden axe) and left-click a block to set position 1.
+    
+    ```bash
+    # In WorldEdit, you can also use:
+    //pos1
+    ```
+  </Step>
+
+  <Step title="Select the second position">
+    Right-click another block to set position 2. This creates a cuboid region.
+    
+    ```bash
+    # Or use the command:
+    //pos2
+    ```
+  </Step>
+
+  <Step title="Create the rain area">
+    Use the `/rainarea create` command with a unique name for your area.
+    
+    ```bash
+    /rainarea create myarea
+    ```
+    
+    The area will be created using your current WorldEdit selection.
+  </Step>
+
+  <Step title="Verify the area was created">
+    Check that your area appears in the list.
+    
+    ```bash
+    /rainarea list
+    ```
+  </Step>
+</Steps>
+
+## Area Creation Examples
+
+<Tabs>
+  <Tab title="Small Treasure Drop">
+    Create a small area above a spawn point for welcome gifts:
+    
+    ```bash
+    # Select a 10x10x5 area above spawn
+    //pos1
+    //pos2
+    
+    # Create the area
+    /rainarea create spawn_gifts
+    ```
+    
+    This is perfect for one-time reward drops when players join.
+  </Tab>
+
+  <Tab title="Boss Arena Rewards">
+    Create a large area covering an entire boss arena:
+    
+    ```bash
+    # Select the entire arena (e.g., 50x50x20)
+    //pos1
+    //pos2
+    
+    # Create the area
+    /rainarea create boss_rewards
+    ```
+    
+    Ideal for dropping loot after defeating a boss.
+  </Tab>
+
+  <Tab title="Event Zone">
+    Create an area for recurring events:
+    
+    ```bash
+    # Select a medium-sized area (30x30x15)
+    //pos1
+    //pos2
+    
+    # Create the area
+    /rainarea create event_zone
+    ```
+    
+    Perfect for hourly or daily events with multiple uses.
+  </Tab>
+
+  <Tab title="Vertical Drop Tower">
+    Create a tall, narrow area for dramatic item drops:
+    
+    ```bash
+    # Select a 5x5 area with 50 blocks height
+    //pos1
+    //pos2
+    
+    # Create the area
+    /rainarea create drop_tower
+    ```
+    
+    Great for visual spectacle with items falling from high up.
+  </Tab>
+</Tabs>
+
+## Common Creation Patterns
+
+### Multiple Areas in Same World
+
+You can create multiple rain areas in the same world without conflicts:
+
+```bash
+# Create first area
+//pos1
+//pos2
+/rainarea create area1
+
+# Move to different location
+//pos1
+//pos2
+/rainarea create area2
+
+# And so on...
+/rainarea create area3
+```
+
+### Cross-World Areas
+
+Areas are world-specific. Create the same area name in different worlds:
+
+```bash
+# In world "survival"
+/rainarea create rewards
+
+# In world "creative" (different area, same name is OK)
+/rainarea create rewards
+```
+
+<Warning>
+Each area name must be unique within the same world. If you try to create an area with an existing name, you'll receive an error message.
+</Warning>
+
+### Planning Area Size
+
+Consider these factors when sizing your area:
+
+- **Volume**: Larger areas spawn more items based on `itemsPerBlock` setting
+- **Height**: Taller areas give items more time to spread naturally
+- **Player visibility**: Ensure players can see the rain effect
+- **Performance**: Very large areas (100,000+ blocks) may impact server performance
+
+<Note>
+You can check an area's volume after creation using `/rainarea info <name>`. The volume is calculated as:
+`(x2 - x1) × (y2 - y1) × (z2 - z1)`
+</Note>
+
+## After Creation
+
+Once created, new areas have default settings:
+
+- Enabled: `true`
+- One-time: `false`
+- Items per block: `0` (no items will drop)
+- Timer ticks: `0` (no automatic stopping)
+- Rain per second: `20` items
+- Experience orbs: `0` (no experience)
+
+You'll need to configure these settings before starting the rain. See the [Configuring Areas](/guides/configuring-areas) guide for next steps.
+
+## Deleting Areas
+
+If you need to remove an area:
+
+```bash
+/rainarea delete <name>
+```
+
+<Warning>
+Deleting an area is permanent and cannot be undone. All configuration and item associations will be lost.
+</Warning>
+
+## Troubleshooting
+
+### "Area already exists" Error
+
+The area name is already taken in this world. Choose a different name or delete the existing area first:
+
+```bash
+/rainarea list  # Check existing names
+/rainarea delete old_area  # Remove old area if needed
+```
+
+### No Selection Made
+
+Make sure you have an active WorldEdit selection before creating the area. The selection must have two positions set.
+
+### Permission Denied
+
+You need the `raintools.area.create` permission. Ask your server administrator to grant this permission.
+
+## Next Steps
+
+- [Configure your area properties](/guides/configuring-areas)
+- [Add items to rain down](/guides/managing-items)
+- [Set up permissions](/guides/permissions)

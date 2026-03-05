@@ -1,0 +1,426 @@
+---
+title: 'AreaManager'
+description: 'API reference for the AreaManager class'
+icon: 'map'
+---
+
+## Overview
+
+The `AreaManager` class handles creation, deletion, and management of rain areas. It also manages player position selections for area creation.
+
+**Package**: `enchanting.tools.rainTools.managers`
+
+## Getting the Manager
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.AreaManager;
+
+AreaManager areaManager = RainTools.getInstance().getAreaManager();
+```
+
+## Position Selection Methods
+
+These methods manage player position selections for creating areas.
+
+### setFirstPosition
+
+Set the first position for a player's area selection.
+
+```java
+public void setFirstPosition(Player player, Location location)
+```
+
+<ParamField path="player" type="Player" required>
+  The player selecting the position
+</ParamField>
+
+<ParamField path="location" type="Location" required>
+  The first corner location of the area
+</ParamField>
+
+**Example**:
+
+```java
+Player player = ...; // Get player
+Location loc = player.getLocation();
+areaManager.setFirstPosition(player, loc);
+// Sends message to player confirming selection
+```
+
+### setSecondPosition
+
+Set the second position for a player's area selection.
+
+```java
+public void setSecondPosition(Player player, Location location)
+```
+
+<ParamField path="player" type="Player" required>
+  The player selecting the position
+</ParamField>
+
+<ParamField path="location" type="Location" required>
+  The second corner location of the area
+</ParamField>
+
+**Example**:
+
+```java
+Player player = ...; // Get player
+Location loc = player.getLocation();
+areaManager.setSecondPosition(player, loc);
+// Calculates volume and sends info to player
+```
+
+### getFirstPosition
+
+Get a player's first selected position.
+
+```java
+public Location getFirstPosition(Player player)
+```
+
+<ParamField path="player" type="Player" required>
+  The player whose position to retrieve
+</ParamField>
+
+<ResponseField name="Location" type="Location">
+  The first selected location, or `null` if not set
+</ResponseField>
+
+**Example**:
+
+```java
+Location pos1 = areaManager.getFirstPosition(player);
+if (pos1 != null) {
+    player.sendMessage("First position: " + pos1.toString());
+}
+```
+
+### getSecondPosition
+
+Get a player's second selected position.
+
+```java
+public Location getSecondPosition(Player player)
+```
+
+<ParamField path="player" type="Player" required>
+  The player whose position to retrieve
+</ParamField>
+
+<ResponseField name="Location" type="Location">
+  The second selected location, or `null` if not set
+</ResponseField>
+
+### hasCompleteSelection
+
+Check if a player has selected both positions.
+
+```java
+public boolean hasCompleteSelection(Player player)
+```
+
+<ParamField path="player" type="Player" required>
+  The player to check
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if both positions are set, `false` otherwise
+</ResponseField>
+
+**Example**:
+
+```java
+if (areaManager.hasCompleteSelection(player)) {
+    player.sendMessage("You have selected both positions!");
+} else {
+    player.sendMessage("Please select both positions first.");
+}
+```
+
+### clearSelection
+
+Clear a player's position selection.
+
+```java
+public void clearSelection(Player player)
+```
+
+<ParamField path="player" type="Player" required>
+  The player whose selection to clear
+</ParamField>
+
+**Example**:
+
+```java
+areaManager.clearSelection(player);
+// Player's selection is cleared and they receive a message
+```
+
+## Area Management Methods
+
+### createArea
+
+Create a new rain area from a player's selection.
+
+```java
+public boolean createArea(String name, Player player)
+```
+
+<ParamField path="name" type="String" required>
+  The unique name for the new area
+</ParamField>
+
+<ParamField path="player" type="Player" required>
+  The player who selected the area positions
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if the area was created successfully, `false` if:
+  - Player doesn't have both positions selected
+  - Area name already exists
+  - Positions are in different worlds
+</ResponseField>
+
+**Example**:
+
+```java
+if (areaManager.createArea("spawn_area", player)) {
+    player.sendMessage("Area created successfully!");
+} else {
+    player.sendMessage("Failed to create area.");
+}
+```
+
+### deleteArea
+
+Delete an existing rain area.
+
+```java
+public boolean deleteArea(String name)
+```
+
+<ParamField path="name" type="String" required>
+  The name of the area to delete
+</ParamField>
+
+<ResponseField name="boolean" type="boolean">
+  `true` if the area was deleted, `false` if area doesn't exist
+</ResponseField>
+
+<Note>
+This method automatically stops any active rain in the area before deleting it.
+</Note>
+
+**Example**:
+
+```java
+if (areaManager.deleteArea("old_area")) {
+    sender.sendMessage("Area deleted successfully!");
+} else {
+    sender.sendMessage("Area not found.");
+}
+```
+
+### getArea
+
+Get a rain area by name.
+
+```java
+public RainArea getArea(String name)
+```
+
+<ParamField path="name" type="String" required>
+  The name of the area to retrieve
+</ParamField>
+
+<ResponseField name="RainArea" type="RainArea">
+  The rain area object, or `null` if not found
+</ResponseField>
+
+**Example**:
+
+```java
+RainArea area = areaManager.getArea("spawn_area");
+if (area != null) {
+    sender.sendMessage("Area volume: " + area.getVolume());
+} else {
+    sender.sendMessage("Area not found.");
+}
+```
+
+### getAllAreas
+
+Get all registered rain areas.
+
+```java
+public Map<String, RainArea> getAllAreas()
+```
+
+<ResponseField name="Map" type="Map<String, RainArea>">
+  A copy of all areas mapped by their names
+</ResponseField>
+
+**Example**:
+
+```java
+Map<String, RainArea> areas = areaManager.getAllAreas();
+sender.sendMessage("Total areas: " + areas.size());
+
+for (Map.Entry<String, RainArea> entry : areas.entrySet()) {
+    String name = entry.getKey();
+    RainArea area = entry.getValue();
+    sender.sendMessage("- " + name + " (" + area.getVolume() + " blocks)");
+}
+```
+
+### getAreaAtLocation
+
+Find which rain area (if any) contains a specific location.
+
+```java
+public RainArea getAreaAtLocation(Location location)
+```
+
+<ParamField path="location" type="Location" required>
+  The location to check
+</ParamField>
+
+<ResponseField name="RainArea" type="RainArea">
+  The area containing this location, or `null` if not in any area
+</ResponseField>
+
+**Example**:
+
+```java
+Location playerLoc = player.getLocation();
+RainArea area = areaManager.getAreaAtLocation(playerLoc);
+
+if (area != null) {
+    player.sendMessage("You are in area: " + area.getName());
+    if (area.isRaining()) {
+        player.sendMessage("It's currently raining here!");
+    }
+} else {
+    player.sendMessage("You are not in any rain area.");
+}
+```
+
+### saveArea
+
+Save or update a rain area.
+
+```java
+public void saveArea(RainArea area)
+```
+
+<ParamField path="area" type="RainArea" required>
+  The area to save
+</ParamField>
+
+<Info>
+This method updates both the in-memory area map and the configuration file.
+</Info>
+
+**Example**:
+
+```java
+RainArea area = areaManager.getArea("spawn_area");
+if (area != null) {
+    // Modify the area
+    area.setRainPerSecond(10);
+    area.setExperienceOrbs(5);
+    
+    // Save the changes
+    areaManager.saveArea(area);
+}
+```
+
+### reloadAreas
+
+Reload all areas from configuration.
+
+```java
+public void reloadAreas()
+```
+
+<Warning>
+This clears all in-memory areas and reloads from the configuration file. Any unsaved changes will be lost.
+</Warning>
+
+**Example**:
+
+```java
+areaManager.reloadAreas();
+sender.sendMessage("Areas reloaded from configuration.");
+```
+
+## Complete Example
+
+Here's a complete example showing area management:
+
+```java
+import enchanting.tools.rainTools.RainTools;
+import enchanting.tools.rainTools.managers.AreaManager;
+import enchanting.tools.rainTools.models.RainArea;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
+
+public class AreaSelectionListener implements Listener {
+    
+    private final AreaManager areaManager;
+    
+    public AreaSelectionListener() {
+        this.areaManager = RainTools.getInstance().getAreaManager();
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        
+        // Check if player is holding a wooden axe (selection tool)
+        if (item == null || item.getType() != Material.WOODEN_AXE) {
+            return;
+        }
+        
+        Location clickedLoc = event.getClickedBlock().getLocation();
+        
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+            // Set first position
+            areaManager.setFirstPosition(player, clickedLoc);
+            event.setCancelled(true);
+            
+        } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            // Set second position
+            areaManager.setSecondPosition(player, clickedLoc);
+            event.setCancelled(true);
+            
+            // Check if selection is complete
+            if (areaManager.hasCompleteSelection(player)) {
+                player.sendMessage("Selection complete! Use /rainarea create <name>");
+                
+                // Calculate area info
+                Location pos1 = areaManager.getFirstPosition(player);
+                Location pos2 = areaManager.getSecondPosition(player);
+                
+                RainArea tempArea = new RainArea("temp", pos1, pos2);
+                player.sendMessage("Area volume: " + tempArea.getVolume() + " blocks");
+            }
+        }
+    }
+}
+```
+
+## See Also
+
+- [RainArea Model](/api/java/models#rainarea) - Rain area data structure
+- [RainManager](/api/java/rain-manager) - Start and stop rain in areas

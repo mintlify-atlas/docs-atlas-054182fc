@@ -1,0 +1,484 @@
+---
+title: Messages & Localization
+description: Customize messages and add multi-language support
+---
+
+# Messages & Localization
+
+RainTools uses a flexible language file system that supports full message customization and multiple languages. Messages are stored in YAML files in the `plugins/RainTools/lang/` directory.
+
+## Language File Location
+
+Language files are located at:
+```
+plugins/RainTools/lang/
+├── en.yml  (English)
+└── es.yml  (Spanish)
+```
+
+## Setting the Language
+
+Configure the active language in [config.yml](/configuration/config-file):
+
+```yaml
+general:
+  language: "en"  # or "es" for Spanish
+```
+
+After changing the language, reload the configuration:
+
+```bash
+/rainarea reload
+```
+
+## Language File Structure
+
+Language files are organized into sections for different message types:
+
+```yaml
+# Special prefix messages
+prefix: "&6[Rain Tools]"
+error-prefix: "&c[Rain Tools]"
+success-prefix: "&a[Rain Tools]"
+info-prefix: "&e[Rain Tools]"
+
+# Error messages
+errors:
+  no-permission: "%error-prefix% You don't have permission..."
+  area-not-found: "%error-prefix% Area '%area%' not found."
+  # ... more errors
+
+# Success messages
+success:
+  area-created: "%success-prefix% Area '%area%' created successfully."
+  # ... more success messages
+
+# Informational messages
+info:
+  no-areas: "%info-prefix% No areas configured."
+  # ... more info messages
+
+# Area status indicators
+area-status:
+  active: "&a[ACTIVE]"
+  inactive: "&e[INACTIVE]"
+  disabled: "&c[DISABLED]"
+
+# Area information display
+area-info:
+  world: "&f- World: &e%world%"
+  # ... more area info
+
+# Command help
+help:
+  rainarea:
+    header: "%prefix% Available commands:"
+    # ... command descriptions
+  saveitem:
+    # ... item command descriptions
+```
+
+## Color Codes
+
+Messages support Minecraft color codes using the `&` symbol:
+
+<ParamField path="&0" type="color">Black</ParamField>
+<ParamField path="&1" type="color">Dark Blue</ParamField>
+<ParamField path="&2" type="color">Dark Green</ParamField>
+<ParamField path="&3" type="color">Dark Aqua</ParamField>
+<ParamField path="&4" type="color">Dark Red</ParamField>
+<ParamField path="&5" type="color">Dark Purple</ParamField>
+<ParamField path="&6" type="color">Gold</ParamField>
+<ParamField path="&7" type="color">Gray</ParamField>
+<ParamField path="&8" type="color">Dark Gray</ParamField>
+<ParamField path="&9" type="color">Blue</ParamField>
+<ParamField path="&a" type="color">Green</ParamField>
+<ParamField path="&b" type="color">Aqua</ParamField>
+<ParamField path="&c" type="color">Red</ParamField>
+<ParamField path="&d" type="color">Light Purple</ParamField>
+<ParamField path="&e" type="color">Yellow</ParamField>
+<ParamField path="&f" type="color">White</ParamField>
+
+### Formatting Codes
+
+<ParamField path="&k" type="format">Obfuscated</ParamField>
+<ParamField path="&l" type="format">Bold</ParamField>
+<ParamField path="&m" type="format">Strikethrough</ParamField>
+<ParamField path="&n" type="format">Underline</ParamField>
+<ParamField path="&o" type="format">Italic</ParamField>
+<ParamField path="&r" type="format">Reset (removes formatting)</ParamField>
+
+### Example Usage
+
+```yaml
+messages:
+  fancy-message: "&6&l[Rain Tools] &r&aArea &e%area% &acreated!"
+  # Displays as: [Rain Tools] (bold gold) Area (yellow) created! (green)
+```
+
+## Available Placeholders
+
+Placeholders are replaced with dynamic values at runtime. Use the pattern `%placeholder%`.
+
+### Prefix Placeholders
+
+<ParamField path="%prefix%" type="string">
+  Main plugin prefix (defined at top of language file)
+</ParamField>
+
+<ParamField path="%error-prefix%" type="string">
+  Error message prefix (typically red)
+</ParamField>
+
+<ParamField path="%success-prefix%" type="string">
+  Success message prefix (typically green)
+</ParamField>
+
+<ParamField path="%info-prefix%" type="string">
+  Information message prefix (typically yellow)
+</ParamField>
+
+### Dynamic Placeholders
+
+<ParamField path="%area%" type="string">
+  Area name in area-related messages
+</ParamField>
+
+<ParamField path="%item%" type="string">
+  Item name in item-related messages
+</ParamField>
+
+<ParamField path="%value%" type="string">
+  Generic value (used for configuration values, counts, etc.)
+</ParamField>
+
+<ParamField path="%world%" type="string">
+  World name when displaying area information
+</ParamField>
+
+<ParamField path="%x%" type="number">
+  X coordinate
+</ParamField>
+
+<ParamField path="%y%" type="number">
+  Y coordinate
+</ParamField>
+
+<ParamField path="%z%" type="number">
+  Z coordinate
+</ParamField>
+
+<ParamField path="%volume%" type="number">
+  Area volume in blocks
+</ParamField>
+
+<ParamField path="%count%" type="number">
+  Count of items or areas
+</ParamField>
+
+<ParamField path="%chance%" type="number">
+  Probability percentage (for item drop chances)
+</ParamField>
+
+<ParamField path="%entity%" type="string">
+  Entity type name
+</ParamField>
+
+<ParamField path="%error%" type="string">
+  Error message text
+</ParamField>
+
+## Complete English Language File
+
+Here is the complete default English language file (`en.yml`):
+
+```yaml
+prefix: "&6[Rain Tools]"
+error-prefix: "&c[Rain Tools]"
+success-prefix: "&a[Rain Tools]"
+info-prefix: "&e[Rain Tools]"
+
+errors:
+  no-permission: "%error-prefix% You don't have permission to use this command."
+  player-only: "%error-prefix% This command can only be used by players."
+  area-not-found: "%error-prefix% Area '%area%' not found."
+  area-already-exists: "%error-prefix% An area with name '%area%' already exists."
+  item-not-found: "%error-prefix% Item '%item%' not found."
+  item-already-exists: "%error-prefix% An item with name '%item%' already exists."
+  invalid-value: "%error-prefix% Invalid value: %value%"
+  no-item-in-hand: "%error-prefix% You must hold an item in your hand."
+  area-not-raining: "%error-prefix% Area '%area%' is not raining."
+  area-already-raining: "%error-prefix% Area '%area%' is already raining."
+  area-disabled: "%error-prefix% Area '%area%' is disabled."
+  area-onetime-used: "%error-prefix% Area '%area%' is one-time and has already been used."
+  spawn-failed: "%error-prefix% Failed to spawn entity %entity%: %error%"
+
+success:
+  area-created: "%success-prefix% Area '%area%' created successfully."
+  area-deleted: "%success-prefix% Area '%area%' deleted successfully."
+  area-started: "%success-prefix% Rain started in area '%area%'."
+  area-stopped: "%success-prefix% Rain stopped in area '%area%'."
+  item-saved: "%success-prefix% Item '%item%' saved successfully."
+  item-deleted: "%success-prefix% Item '%item%' deleted successfully."
+  item-added: "%success-prefix% Item '%item%' added to area '%area%' with %chance%% chance."
+  item-removed: "%success-prefix% Item '%item%' removed from area '%area%'."
+  config-updated: "%success-prefix% Configuration updated successfully."
+  reload-complete: "%success-prefix% Configuration reloaded successfully."
+  entities-cleaned: "%success-prefix% Cleaned up entities from area '%area%' after 20 minutes."
+
+info:
+  no-areas: "%info-prefix% No areas configured."
+  no-items: "%info-prefix% No items saved."
+  areas-list-header: "%prefix% Configured areas:"
+  items-list-header: "%prefix% Saved items (%count%):"
+  area-info-header: "%prefix% Information for area '%area%':"
+  update-available: "%info-prefix% Use /saveitem update %item% to update it."
+
+area-status:
+  active: "&a[ACTIVE]"
+  inactive: "&e[INACTIVE]"
+  disabled: "&c[DISABLED]"
+
+area-info:
+  world: "&f- World: &e%world%"
+  pos1: "&f- Position 1: &e%x%, %y%, %z%"
+  pos2: "&f- Position 2: &e%x%, %y%, %z%"
+  volume: "&f- Volume: &e%volume% blocks"
+  enabled: "&f- Enabled: &e%value%"
+  onetime: "&f- One-time: &e%value%"
+  has-rained: "&f- Has rained once: &e%value%"
+  items-per-block: "&f- Items per block: &e%value%"
+  timer-ticks: "&f- Timer: &e%value% ticks"
+  rain-per-second: "&f- Rain per second: &e%value%"
+  exp-orbs: "&f- Experience orbs: &e%value%"
+  saved-items: "&f- Saved items: &e%value%"
+  entities: "&f- Entities: &e%value%"
+
+help:
+  rainarea:
+    header: "%prefix% Available commands:"
+    create: "&e/rainarea create <name> &f- Create a new area"
+    delete: "&e/rainarea delete <name> &f- Delete an area"
+    list: "&e/rainarea list &f- List all areas"
+    start: "&e/rainarea start <name> &f- Start rain in area"
+    stop: "&e/rainarea stop <name> &f- Stop rain in area"
+    info: "&e/rainarea info <name> &f- Show area information"
+    config: "&e/rainarea config <area> <prop> <value> &f- Configure area"
+    reload: "&e/rainarea reload &f- Reload configuration"
+  saveitem:
+    header: "%prefix% Item commands:"
+    save: "&e/saveitem <name> &f- Save item in hand"
+    save-alt: "&e/saveitem save <name> &f- Save item in hand"
+    list: "&e/saveitem list &f- List saved items"
+    delete: "&e/saveitem delete <name> &f- Delete saved item"
+    add: "&e/saveitem add <area> <item> <chance> &f- Add item to area"
+    remove: "&e/saveitem removearea <area> <item> &f- Remove item from area"
+```
+
+## Complete Spanish Language File
+
+The complete Spanish translation (`es.yml`):
+
+```yaml
+prefix: "&6[Rain Tools]"
+error-prefix: "&c[Rain Tools]"
+success-prefix: "&a[Rain Tools]"
+info-prefix: "&e[Rain Tools]"
+
+errors:
+  no-permission: "%error-prefix% No tienes permiso para usar este comando."
+  player-only: "%error-prefix% Este comando solo puede ser usado por jugadores."
+  area-not-found: "%error-prefix% No se encontró el área '%area%'."
+  area-already-exists: "%error-prefix% Ya existe un área con el nombre '%area%'."
+  item-not-found: "%error-prefix% No se encontró el item '%item%'."
+  item-already-exists: "%error-prefix% Ya existe un item con el nombre '%item%'."
+  invalid-value: "%error-prefix% Valor inválido: %value%"
+  no-item-in-hand: "%error-prefix% Debes tener un item en la mano."
+  area-not-raining: "%error-prefix% El área '%area%' no está lloviendo."
+  area-already-raining: "%error-prefix% El área '%area%' ya está lloviendo."
+  area-disabled: "%error-prefix% El área '%area%' está deshabilitada."
+  area-onetime-used: "%error-prefix% El área '%area%' es de una sola vez y ya ha sido usada."
+  spawn-failed: "%error-prefix% No se pudo generar la entidad %entity%: %error%"
+
+success:
+  area-created: "%success-prefix% Área '%area%' creada exitosamente."
+  area-deleted: "%success-prefix% Área '%area%' eliminada exitosamente."
+  area-started: "%success-prefix% Lluvia iniciada en el área '%area%'."
+  area-stopped: "%success-prefix% Lluvia detenida en el área '%area%'."
+  item-saved: "%success-prefix% Item '%item%' guardado exitosamente."
+  item-deleted: "%success-prefix% Item '%item%' eliminado exitosamente."
+  item-added: "%success-prefix% Item '%item%' agregado al área '%area%' con %chance%% de probabilidad."
+  item-removed: "%success-prefix% Item '%item%' removido del área '%area%'."
+  config-updated: "%success-prefix% Configuración actualizada exitosamente."
+  reload-complete: "%success-prefix% Configuración recargada exitosamente."
+  entities-cleaned: "%success-prefix% Se han limpiado las entidades del área '%area%' después de 20 minutos."
+
+info:
+  no-areas: "%info-prefix% No hay áreas configuradas."
+  no-items: "%info-prefix% No hay items guardados."
+  areas-list-header: "%prefix% Áreas configuradas:"
+  items-list-header: "%prefix% Items guardados (%count%):"
+  area-info-header: "%prefix% Información del área '%area%':"
+  update-available: "%info-prefix% Usa /saveitem update %item% para actualizarlo."
+
+area-status:
+  active: "&a[ACTIVA]"
+  inactive: "&e[INACTIVA]"
+  disabled: "&c[DESHABILITADA]"
+
+area-info:
+  world: "&f- Mundo: &e%world%"
+  pos1: "&f- Posición 1: &e%x%, %y%, %z%"
+  pos2: "&f- Posición 2: &e%x%, %y%, %z%"
+  volume: "&f- Volumen: &e%volume% bloques"
+  enabled: "&f- Habilitada: &e%value%"
+  onetime: "&f- Una vez: &e%value%"
+  has-rained: "&f- Ha llovido una vez: &e%value%"
+  items-per-block: "&f- Items por bloque: &e%value%"
+  timer-ticks: "&f- Timer: &e%value% ticks"
+  rain-per-second: "&f- Lluvia por segundo: &e%value%"
+  exp-orbs: "&f- Orbes de experiencia: &e%value%"
+  saved-items: "&f- Items guardados: &e%value%"
+  entities: "&f- Entidades: &e%value%"
+
+help:
+  rainarea:
+    header: "%prefix% Comandos disponibles:"
+    create: "&e/rainarea create <nombre> &f- Crear área nueva"
+    delete: "&e/rainarea delete <nombre> &f- Eliminar área"
+    list: "&e/rainarea list &f- Listar áreas"
+    start: "&e/rainarea start <nombre> &f- Iniciar lluvia"
+    stop: "&e/rainarea stop <nombre> &f- Detener lluvia"
+    info: "&e/rainarea info <nombre> &f- Información del área"
+    config: "&e/rainarea config <área> <prop> <valor> &f- Configurar área"
+    reload: "&e/rainarea reload &f- Recargar configuración"
+  saveitem:
+    header: "%prefix% Comandos de items:"
+    save: "&e/saveitem <nombre> &f- Guardar item en mano"
+    save-alt: "&e/saveitem save <nombre> &f- Guardar item en mano"
+    list: "&e/saveitem list &f- Listar items guardados"
+    delete: "&e/saveitem delete <nombre> &f- Eliminar item guardado"
+    add: "&e/saveitem add <área> <item> <prob> &f- Agregar item a área"
+    remove: "&e/saveitem removearea <área> <item> &f- Quitar item de área"
+```
+
+## Creating a Custom Language
+
+To create a new language (e.g., French):
+
+1. **Copy an existing language file:**
+   ```bash
+   cp plugins/RainTools/lang/en.yml plugins/RainTools/lang/fr.yml
+   ```
+
+2. **Translate all messages:**
+   Edit `fr.yml` and translate each message while keeping:
+   - Placeholders intact (e.g., `%area%`, `%item%`)
+   - Color codes as desired
+   - The same YAML structure
+
+3. **Set the language in config.yml:**
+   ```yaml
+   general:
+     language: "fr"
+   ```
+
+4. **Reload the plugin:**
+   ```bash
+   /rainarea reload
+   ```
+
+## Customizing Messages
+
+### Example: Custom Branding
+
+```yaml
+prefix: "&5&l✨ &d&lMagic Rain &5&l✨"
+error-prefix: "&c&l⚠ &4Magic Rain"
+success-prefix: "&a&l✔ &2Magic Rain"
+info-prefix: "&e&lℹ &6Magic Rain"
+```
+
+### Example: Minimalist Style
+
+```yaml
+prefix: "&7[&fRain&7]"
+error-prefix: "&7[&cError&7]"
+success-prefix: "&7[&aOK&7]"
+info-prefix: "&7[&eInfo&7]"
+
+errors:
+  no-permission: "%error-prefix% &fInsufficient permissions"
+  area-not-found: "%error-prefix% &fArea not found: &c%area%"
+
+success:
+  area-created: "%success-prefix% &fCreated: &a%area%"
+  area-deleted: "%success-prefix% &fDeleted: &a%area%"
+```
+
+### Example: Verbose Style
+
+```yaml
+success:
+  area-created: "%success-prefix% The rain area named '%area%' has been successfully created and is now ready for configuration."
+  item-added: "%success-prefix% The item '%item%' has been added to rain area '%area%' with a drop probability of %chance%% per rain cycle."
+```
+
+## How the Message System Works
+
+The message system uses the `LanguageManager` class (see `LanguageManager.java:70`). When a message is requested:
+
+1. **Load message** from language file using message path (e.g., `errors.area-not-found`)
+2. **Replace prefix placeholders** (`%prefix%`, `%error-prefix%`, etc.)
+3. **Replace custom placeholders** with provided values
+4. **Convert color codes** from `&` to Minecraft's internal format
+5. **Send to player** or console
+
+### Message Usage in Code
+
+```java
+// Simple message
+String msg = languageManager.getMessage("errors.no-permission");
+
+// Message with placeholders
+Map<String, String> placeholders = new HashMap<>();
+placeholders.put("area", areaName);
+String msg = languageManager.getMessage("success.area-created", placeholders);
+```
+
+## Fallback Behavior
+
+If a message is not found in the current language file:
+
+1. The plugin displays: `Missing message: <path>`
+2. Check the console for warnings
+3. Ensure your language file has all required keys
+
+If a language file doesn't exist:
+
+1. Plugin falls back to English (`en.yml`)
+2. If English doesn't exist, it's extracted from plugin resources
+
+## Best Practices
+
+<Warning>
+  Always keep placeholders in their original form when translating. Don't translate `%area%` to `%zone%` or messages will break.
+</Warning>
+
+<Tip>
+  Test your custom messages by using commands that trigger them. Use `/rainarea help` to see all available commands.
+</Tip>
+
+<Note>
+  Color codes and formatting are subjective. Choose colors that match your server's theme and provide good contrast for readability.
+</Note>
+
+## Reloading Messages
+
+After editing language files:
+
+```bash
+/rainarea reload
+```
+
+This reloads all language files without restarting the server. Changes take effect immediately for all players.

@@ -1,0 +1,688 @@
+---
+title: /rainarea
+description: Complete reference for the rainarea command and all its subcommands
+---
+
+The `/rainarea` command is the primary command for managing rain areas in RainTools. It allows you to create, configure, start, stop, and monitor custom item rain areas.
+
+## Aliases
+
+- `/ra` - Short alias for `/rainarea`
+
+## Permission
+
+- `raintools.area.manage` - Required for most subcommands
+- `raintools.area.create` - Required for creating areas
+- `raintools.area.delete` - Required for deleting areas
+
+## Command Overview
+
+```
+/rainarea <subcommand> [arguments]
+```
+
+When executed without arguments, displays help information with all available subcommands.
+
+---
+
+## Subcommands
+
+### create
+
+Creates a new rain area at your current WorldEdit selection.
+
+<ParamField path="name" type="string" required>
+  The unique name for the rain area. Must not already exist.
+</ParamField>
+
+**Permission:** `raintools.area.create`
+
+**Player Only:** Yes - Console cannot execute this command
+
+**Usage:**
+```
+/rainarea create <name>
+/ra create spawn_event
+```
+
+**Examples:**
+```bash
+# Create a rain area named "spawn_event"
+/rainarea create spawn_event
+
+# Using the short alias
+/ra create boss_arena
+```
+
+<Note>
+  You must have a WorldEdit selection active before creating an area. Use WorldEdit's `//pos1` and `//pos2` commands to define the area bounds.
+</Note>
+
+---
+
+### delete
+
+Deletes an existing rain area permanently.
+
+<ParamField path="name" type="string" required>
+  The name of the rain area to delete.
+</ParamField>
+
+**Permission:** `raintools.area.delete`
+
+**Aliases:** `remove`
+
+**Usage:**
+```
+/rainarea delete <name>
+/rainarea remove <name>
+```
+
+**Examples:**
+```bash
+# Delete the spawn_event area
+/rainarea delete spawn_event
+
+# Using the remove alias
+/ra remove old_arena
+
+# Console usage
+/rainarea delete temp_area
+```
+
+<Warning>
+  Deleting an area is permanent and cannot be undone. The area configuration will be removed from disk.
+</Warning>
+
+---
+
+### list
+
+Displays all configured rain areas with their status and volume.
+
+**Permission:** `raintools.area.manage`
+
+**Usage:**
+```
+/rainarea list
+/ra list
+```
+
+**Example Output:**
+```
+Configured Rain Areas:
+- spawn_event ACTIVE (Volume: 5000 blocks)
+- boss_arena INACTIVE (Volume: 3200 blocks)
+- reward_zone DISABLED (Volume: 1500 blocks)
+```
+
+**Status Types:**
+- **ACTIVE** - Rain is currently running in this area
+- **INACTIVE** - Area is enabled but not currently raining
+- **DISABLED** - Area is disabled and cannot start raining
+
+**Console Usage:**
+```bash
+# List all areas from console
+rainarea list
+```
+
+---
+
+### start
+
+Starts the item rain in a specific area.
+
+<ParamField path="name" type="string" required>
+  The name of the rain area to start.
+</ParamField>
+
+**Permission:** `raintools.area.manage`
+
+**Usage:**
+```
+/rainarea start <name>
+/ra start spawn_event
+```
+
+**Examples:**
+```bash
+# Start rain in spawn_event area
+/rainarea start spawn_event
+
+# From console
+rainarea start boss_arena
+
+# Using alias
+/ra start reward_zone
+```
+
+**Requirements:**
+- Area must exist
+- Area must be enabled
+- Area must not already be raining
+- If area is one-time, it must not have rained before
+
+<Accordion title="What happens when rain starts?">
+  When rain starts:
+  - Items begin spawning according to the configured rate (`rainpersecond`)
+  - Experience orbs spawn if configured (`exprorbs` > 0)
+  - Items are randomly selected from the area's saved items based on probability
+  - Rain continues indefinitely until stopped or the timer expires
+  - If `timer` is set, rain stops automatically after the specified ticks
+</Accordion>
+
+---
+
+### stop
+
+Stops the item rain in a specific area.
+
+<ParamField path="name" type="string" required>
+  The name of the rain area to stop.
+</ParamField>
+
+**Permission:** `raintools.area.manage`
+
+**Usage:**
+```
+/rainarea stop <name>
+/ra stop spawn_event
+```
+
+**Examples:**
+```bash
+# Stop rain in spawn_event area
+/rainarea stop spawn_event
+
+# From console
+rainarea stop boss_arena
+
+# Using alias
+/ra stop reward_zone
+```
+
+**Requirements:**
+- Area must exist
+- Area must currently be raining
+
+---
+
+### info
+
+Displays detailed information about a specific rain area.
+
+<ParamField path="name" type="string" required>
+  The name of the rain area to inspect.
+</ParamField>
+
+**Permission:** `raintools.area.manage`
+
+**Usage:**
+```
+/rainarea info <name>
+/ra info spawn_event
+```
+
+**Examples:**
+```bash
+# View info for spawn_event
+/rainarea info spawn_event
+
+# From console
+rainarea info boss_arena
+```
+
+**Information Displayed:**
+- **World** - The world where the area exists
+- **Position 1** - First corner coordinates (x, y, z)
+- **Position 2** - Second corner coordinates (x, y, z)
+- **Enabled** - Whether the area can be started
+- **One-Time** - If true, area can only rain once
+- **Has Rained** - Whether a one-time area has already been used
+- **Items Per Block** - Number of items spawned per block volume
+- **Timer Ticks** - Auto-stop timer (0 = infinite)
+- **Rain Per Second** - Items spawned per second
+- **Experience Orbs** - Number of exp orbs per cycle
+- **Saved Items** - Number of item types configured
+- **Entities** - Number of entity types configured
+
+**Example Output:**
+```
+Area Information: spawn_event
+World: world
+Position 1: 100, 64, 200
+Position 2: 150, 80, 250
+Enabled: true
+One-Time: false
+Has Rained: false
+Items Per Block: 1
+Timer Ticks: 0
+Rain Per Second: 10
+Experience Orbs: 5
+Saved Items: 3
+Entities: 0
+```
+
+---
+
+### config
+
+Configures properties of an existing rain area.
+
+<ParamField path="area" type="string" required>
+  The name of the rain area to configure.
+</ParamField>
+
+<ParamField path="property" type="string" required>
+  The property to modify. See available properties below.
+</ParamField>
+
+<ParamField path="value" type="string" required>
+  The new value for the property.
+</ParamField>
+
+**Permission:** `raintools.area.manage`
+
+**Aliases:** `configure`
+
+**Usage:**
+```
+/rainarea config <area> <property> <value>
+/rainarea configure <area> <property> <value>
+```
+
+#### Available Properties
+
+<ParamField path="enabled" type="boolean">
+  Enable or disable the rain area. Disabled areas cannot be started.
+  
+  **Values:** `true` or `false`
+  
+  **Example:**
+  ```bash
+  /rainarea config spawn_event enabled true
+  ```
+</ParamField>
+
+<ParamField path="onetime" type="boolean">
+  Set whether the area can only rain once. Useful for special events or rewards.
+  
+  **Values:** `true` or `false`
+  
+  **Example:**
+  ```bash
+  /rainarea config boss_reward onetime true
+  ```
+</ParamField>
+
+<ParamField path="resetonetime" type="any">
+  Resets the one-time flag, allowing a one-time area to rain again. Value is ignored.
+  
+  **Values:** Any value (ignored)
+  
+  **Example:**
+  ```bash
+  /rainarea config boss_reward resetonetime true
+  ```
+</ParamField>
+
+<ParamField path="itemsperblock" type="integer">
+  Number of items to spawn per block of area volume. Higher values = more items.
+  
+  **Values:** Positive integer
+  
+  **Default:** 1
+  
+  **Example:**
+  ```bash
+  /rainarea config spawn_event itemsperblock 2
+  ```
+</ParamField>
+
+<ParamField path="timer" type="long">
+  Auto-stop timer in ticks (20 ticks = 1 second). Set to 0 for infinite rain.
+  
+  **Values:** 0 or positive integer
+  
+  **Default:** 0 (infinite)
+  
+  **Example:**
+  ```bash
+  # Rain for 30 seconds (600 ticks)
+  /rainarea config spawn_event timer 600
+  
+  # Rain for 5 minutes (6000 ticks)
+  /rainarea config boss_arena timer 6000
+  
+  # Infinite rain
+  /rainarea config reward_zone timer 0
+  ```
+</ParamField>
+
+<ParamField path="rainpersecond" type="integer">
+  Number of items to spawn per second during rain.
+  
+  **Values:** Positive integer
+  
+  **Default:** 10
+  
+  **Example:**
+  ```bash
+  # Intense rain (50 items/second)
+  /rainarea config spawn_event rainpersecond 50
+  
+  # Light rain (5 items/second)
+  /rainarea config casual_area rainpersecond 5
+  ```
+</ParamField>
+
+<ParamField path="exprorbs" type="integer">
+  Number of experience orbs to spawn per cycle.
+  
+  **Values:** 0 or positive integer (0 disables exp orbs)
+  
+  **Default:** 0
+  
+  **Example:**
+  ```bash
+  # Spawn 10 exp orbs per cycle
+  /rainarea config spawn_event exprorbs 10
+  
+  # Disable exp orbs
+  /rainarea config boss_arena exprorbs 0
+  ```
+</ParamField>
+
+<ParamField path="minexp" type="integer">
+  Minimum experience points per orb.
+  
+  **Values:** Positive integer
+  
+  **Default:** 1
+  
+  **Example:**
+  ```bash
+  /rainarea config spawn_event minexp 5
+  ```
+</ParamField>
+
+<ParamField path="maxexp" type="integer">
+  Maximum experience points per orb.
+  
+  **Values:** Positive integer (must be >= minexp)
+  
+  **Default:** 10
+  
+  **Example:**
+  ```bash
+  /rainarea config spawn_event maxexp 20
+  ```
+</ParamField>
+
+**Complete Examples:**
+```bash
+# Configure a 30-second event with intense rain
+/rainarea config birthday_event enabled true
+/rainarea config birthday_event onetime true
+/rainarea config birthday_event timer 600
+/rainarea config birthday_event rainpersecond 100
+/rainarea config birthday_event exprorbs 50
+/rainarea config birthday_event minexp 10
+/rainarea config birthday_event maxexp 50
+
+# Configure an infinite casual rain area
+/rainarea config spawn_rain enabled true
+/rainarea config spawn_rain rainpersecond 10
+/rainarea config spawn_rain exprorbs 0
+
+# From console
+rainarea config event_area enabled false
+```
+
+<Accordion title="How do timer ticks work?">
+  Minecraft runs at 20 ticks per second (TPS). To convert:
+  - Seconds to ticks: multiply by 20
+  - Minutes to ticks: multiply by 1200 (60 * 20)
+  
+  Examples:
+  - 10 seconds = 200 ticks
+  - 30 seconds = 600 ticks
+  - 1 minute = 1200 ticks
+  - 5 minutes = 6000 ticks
+  - 10 minutes = 12000 ticks
+</Accordion>
+
+---
+
+### reload
+
+Reloads all plugin configuration, including areas, items, and language files.
+
+**Permission:** `raintools.area.manage`
+
+**Usage:**
+```
+/rainarea reload
+/ra reload
+```
+
+**Examples:**
+```bash
+# Reload plugin
+/rainarea reload
+
+# From console
+rainarea reload
+```
+
+**What Gets Reloaded:**
+- All rain areas from disk
+- All saved items from disk
+- Language files
+- Plugin configuration
+- All active rains are stopped
+
+<Warning>
+  The reload command stops all currently active rain events. Make sure to restart them manually if needed.
+</Warning>
+
+---
+
+## Tab Completion
+
+The command supports tab completion for easier usage:
+
+**First Argument (Subcommands):**
+- `create`
+- `delete`
+- `list`
+- `start`
+- `stop`
+- `info`
+- `config`
+- `reload`
+
+**Second Argument (Area Names):**
+- Autocompletes with existing area names for: `delete`, `start`, `stop`, `info`, `config`
+
+**Third Argument (Config Properties):**
+- When using `config` subcommand: `enabled`, `onetime`, `itemsperblock`, `timer`, `rainpersecond`, `exprorbs`, `minexp`, `maxexp`, `resetonetime`
+
+---
+
+## Common Workflows
+
+<AccordionGroup>
+  <Accordion title="Creating a New Rain Area">
+    1. Use WorldEdit to select the area:
+       ```
+       //pos1
+       //pos2
+       ```
+    
+    2. Create the rain area:
+       ```
+       /rainarea create my_area
+       ```
+    
+    3. Configure the area:
+       ```
+       /rainarea config my_area rainpersecond 20
+       /rainarea config my_area exprorbs 10
+       /rainarea config my_area timer 1200
+       ```
+    
+    4. Add items (see [/saveitem](/api/commands/saveitem)):
+       ```
+       /saveitem add my_area diamond 0.1
+       /saveitem add my_area gold_ingot 0.3
+       /saveitem add my_area iron_ingot 0.6
+       ```
+    
+    5. Start the rain:
+       ```
+       /rainarea start my_area
+       ```
+  </Accordion>
+
+  <Accordion title="Creating a One-Time Event">
+    Perfect for special rewards, boss defeats, or achievements:
+    
+    ```bash
+    # Create and configure
+    /rainarea create boss_reward
+    /rainarea config boss_reward onetime true
+    /rainarea config boss_reward timer 600
+    /rainarea config boss_reward rainpersecond 50
+    /rainarea config boss_reward exprorbs 100
+    /rainarea config boss_reward minexp 50
+    /rainarea config boss_reward maxexp 100
+    
+    # Add rare items
+    /saveitem add boss_reward legendary_sword 0.05
+    /saveitem add boss_reward rare_armor 0.15
+    /saveitem add boss_reward common_loot 0.80
+    
+    # Start when boss is defeated
+    /rainarea start boss_reward
+    ```
+    
+    If you need to reset it:
+    ```bash
+    /rainarea config boss_reward resetonetime true
+    ```
+  </Accordion>
+
+  <Accordion title="Managing Multiple Areas">
+    ```bash
+    # List all areas
+    /rainarea list
+    
+    # Check specific area status
+    /rainarea info spawn_event
+    /rainarea info boss_arena
+    
+    # Start multiple areas
+    /rainarea start spawn_event
+    /rainarea start boss_arena
+    
+    # Stop all (requires reload)
+    /rainarea reload
+    ```
+  </Accordion>
+
+  <Accordion title="Console Automation">
+    All commands can be executed from console for automation:
+    
+    ```bash
+    # Start rain at server event time
+    rainarea start daily_reward
+    
+    # Stop after some time (use scheduler or external script)
+    rainarea stop daily_reward
+    
+    # Enable/disable areas based on schedule
+    rainarea config weekend_event enabled true
+    rainarea config weekend_event enabled false
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Area won't start">
+    Check these common issues:
+    
+    1. **Area is disabled:**
+       ```bash
+       /rainarea info area_name
+       # Look for "Enabled: false"
+       /rainarea config area_name enabled true
+       ```
+    
+    2. **One-time area already used:**
+       ```bash
+       /rainarea info area_name
+       # Look for "Has Rained: true"
+       /rainarea config area_name resetonetime true
+       ```
+    
+    3. **No items configured:**
+       ```bash
+       /rainarea info area_name
+       # Look for "Saved Items: 0"
+       /saveitem add area_name item_name 1.0
+       ```
+    
+    4. **Area is already raining:**
+       ```bash
+       /rainarea stop area_name
+       /rainarea start area_name
+       ```
+  </Accordion>
+
+  <Accordion title="Permission denied errors">
+    Ensure the player/console has the correct permissions:
+    
+    - `raintools.area.manage` - For most operations
+    - `raintools.area.create` - For creating areas
+    - `raintools.area.delete` - For deleting areas
+    
+    Grant all permissions:
+    ```yaml
+    # In your permissions plugin
+    groups:
+      admin:
+        permissions:
+          - raintools.area.manage
+          - raintools.area.create
+          - raintools.area.delete
+    ```
+  </Accordion>
+
+  <Accordion title="Area not found">
+    1. List all areas to check the exact name:
+       ```bash
+       /rainarea list
+       ```
+    
+    2. Names are case-sensitive. Ensure exact match.
+    
+    3. Check if the area exists in the config:
+       ```bash
+       /rainarea info area_name
+       ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## See Also
+
+- [/saveitem](/api/commands/saveitem) - Manage items for rain areas
+- [Rain Areas](/concepts/rain-areas) - Complete guide to rain areas
+- [Configuration](/configuration/area-properties) - Area configuration file reference

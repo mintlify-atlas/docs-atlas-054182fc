@@ -1,0 +1,173 @@
+---
+title: 'Permissions'
+description: 'Complete permission reference for RainTools'
+icon: 'shield-check'
+---
+
+## Overview
+
+RainTools uses a hierarchical permission system to control access to area management and item configuration features. All permissions default to `op` level, meaning only server operators have access by default.
+
+## Permission List
+
+<ParamField path="raintools.area.create" type="permission" default="op">
+  Allows players to create new rain areas using the area selection tool (diamond axe) and the `/rainarea create` command.
+  
+  **Required for:**
+  - Selecting area boundaries with diamond axe
+  - Creating new rain areas
+  - Defining area coordinates
+</ParamField>
+
+<ParamField path="raintools.area.delete" type="permission" default="op">
+  Allows players to delete existing rain areas from the server.
+  
+  **Required for:**
+  - Removing rain areas with `/rainarea delete`
+  - Permanent deletion of area configurations
+</ParamField>
+
+<ParamField path="raintools.area.manage" type="permission" default="op">
+  Master permission for complete area management. Includes all area-related permissions through inheritance.
+  
+  **Required for:**
+  - Starting and stopping rain areas
+  - Configuring area properties
+  - Viewing area information
+  - Listing all areas
+  - Reloading plugin configuration
+  - All commands under `/rainarea`
+  
+  **Automatically grants:**
+  - `raintools.area.create`
+  - `raintools.area.delete`
+</ParamField>
+
+<ParamField path="raintools.item.save" type="permission" default="op">
+  Allows players to save items and configure item drops for rain areas.
+  
+  **Required for:**
+  - Saving held items to the plugin
+  - Managing saved items
+  - Adding items to rain areas
+  - Removing items from areas
+  - All commands under `/saveitem`
+</ParamField>
+
+## Permission Hierarchy
+
+The plugin uses a parent-child permission structure:
+
+```
+raintools.area.manage (parent)
+├── raintools.area.create
+└── raintools.area.delete
+```
+
+When you grant `raintools.area.manage`, the player automatically receives both `raintools.area.create` and `raintools.area.delete`.
+
+## Permission Setup Examples
+
+### LuckPerms
+
+Grant full access to a player:
+```bash
+/lp user <player> permission set raintools.area.manage true
+/lp user <player> permission set raintools.item.save true
+```
+
+Grant area management to a group:
+```bash
+/lp group admin permission set raintools.area.manage true
+/lp group admin permission set raintools.item.save true
+```
+
+Allow only area creation (no deletion):
+```bash
+/lp user <player> permission set raintools.area.create true
+```
+
+### PermissionsEx
+
+Grant full access to a player:
+```bash
+/pex user <player> add raintools.area.manage
+/pex user <player> add raintools.item.save
+```
+
+Grant to a group:
+```bash
+/pex group moderator add raintools.area.manage
+/pex group moderator add raintools.item.save
+```
+
+Allow only item management:
+```bash
+/pex user <player> add raintools.item.save
+```
+
+### GroupManager
+
+Add permissions to a group:
+```bash
+/manuadp admin raintools.area.manage
+/manuadp admin raintools.item.save
+```
+
+Add to a specific player:
+```bash
+/manuaddp <player> raintools.area.manage
+/manuaddp <player> raintools.item.save
+```
+
+## Permission Use Cases
+
+### Server Administrator
+Full control over all rain areas and items:
+```yaml
+permissions:
+  - raintools.area.manage
+  - raintools.item.save
+```
+
+### Event Manager
+Can create and start events but not delete them:
+```yaml
+permissions:
+  - raintools.area.create
+  - raintools.item.save
+```
+
+### Area Designer
+Only area selection and creation:
+```yaml
+permissions:
+  - raintools.area.create
+```
+
+### Item Curator
+Only item management:
+```yaml
+permissions:
+  - raintools.item.save
+```
+
+## Default Configuration
+
+By default, all permissions require operator status (`op`). This means:
+- Non-op players cannot use any RainTools commands
+- Only server operators can manage areas and items
+- Permission plugins are required for granular access control
+
+To allow non-op players to use RainTools features, you must explicitly grant permissions using a permission management plugin.
+
+## Permission Checks
+
+The plugin performs permission checks at multiple points:
+
+1. **Command Execution**: When running any `/rainarea` or `/saveitem` command
+2. **Area Selection**: When using a diamond axe to select area boundaries
+3. **Area Operations**: When starting, stopping, or modifying rain areas
+4. **Item Operations**: When saving or managing items
+
+If a player lacks the required permission, the action is silently ignored or a permission denied message is shown.

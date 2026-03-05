@@ -1,0 +1,440 @@
+---
+title: Area Properties
+description: Configure rain area properties and behavior
+---
+
+# Area Properties
+
+Each rain area has individual properties that control its behavior, appearance, and rain mechanics. Areas are stored in `plugins/RainTools/areas.yml` and can be configured via commands or by editing the file directly.
+
+## Properties Overview
+
+Every rain area has the following configurable properties:
+
+<ParamField path="enabled" type="boolean" default="true">
+  Whether the area is enabled. Disabled areas cannot start rain even when commanded.
+  
+  **Command:**
+  ```bash
+  /rainarea config <area> enabled true/false
+  ```
+</ParamField>
+
+<ParamField path="oneTime" type="boolean" default="false">
+  Whether the area is single-use. One-time areas automatically disable after their first rain cycle completes.
+  
+  **Use cases:**
+  - Special events
+  - Quest rewards
+  - Limited-time drops
+  
+  **Command:**
+  ```bash
+  /rainarea config <area> oneTime true/false
+  ```
+</ParamField>
+
+<ParamField path="itemsPerBlock" type="integer" default="1">
+  Number of items that can spawn per block in the area during each rain cycle.
+  
+  **Valid range:** 1-100
+  
+  **Visual effect:**
+  - `1-3` - Light scattered rain
+  - `4-7` - Medium rain
+  - `8-15` - Heavy downpour
+  - `16+` - Extreme rain (may cause lag)
+  
+  **Command:**
+  ```bash
+  /rainarea config <area> itemsPerBlock <number>
+  ```
+</ParamField>
+
+<ParamField path="timerTicks" type="long" default="20">
+  Timer interval in ticks between rain cycles. Minecraft runs at 20 ticks per second.
+  
+  **Common values:**
+  - `20` - 1 second (default)
+  - `40` - 2 seconds
+  - `10` - 0.5 seconds (fast)
+  - `100` - 5 seconds (slow)
+  
+  **Command:**
+  ```bash
+  /rainarea config <area> timerTicks <ticks>
+  ```
+</ParamField>
+
+<ParamField path="rainPerSecond" type="integer" default="1">
+  Number of spawning attempts per second per block. Combined with `timerTicks` to determine actual spawn rate.
+  
+  **Formula:** Total spawns = (area volume × rainPerSecond × itemsPerBlock) / (timerTicks / 20)
+  
+  **Command:**
+  ```bash
+  /rainarea config <area> rainPerSecond <number>
+  ```
+</ParamField>
+
+<ParamField path="experienceOrbs" type="integer" default="1">
+  Number of experience orbs to spawn per rain cycle. Set to `0` to disable experience rain entirely.
+  
+  **Command:**
+  ```bash
+  /rainarea config <area> experienceOrbs <number>
+  ```
+</ParamField>
+
+<ParamField path="minExpPerOrb" type="integer" default="1">
+  Minimum experience points per spawned orb. Each orb receives a random value between min and max.
+  
+  **Command:**
+  ```bash
+  /rainarea config <area> minExpPerOrb <number>
+  ```
+</ParamField>
+
+<ParamField path="maxExpPerOrb" type="integer" default="5">
+  Maximum experience points per spawned orb.
+  
+  **Command:**
+  ```bash
+  /rainarea config <area> maxExpPerOrb <number>
+  ```
+</ParamField>
+
+## Position Properties
+
+These properties define the area's location and boundaries:
+
+<ParamField path="world" type="string" required>
+  The world name where the area exists (e.g., `world`, `world_nether`, `world_the_end`).
+  
+  Areas are world-specific and cannot span multiple worlds.
+</ParamField>
+
+<ParamField path="pos1" type="location" required>
+  First corner position of the rectangular area.
+  
+  **Structure:**
+  ```yaml
+  pos1:
+    x: 100
+    y: 64
+    z: 200
+  ```
+</ParamField>
+
+<ParamField path="pos2" type="location" required>
+  Second corner position (opposite corner from pos1).
+  
+  **Structure:**
+  ```yaml
+  pos2:
+    x: 150
+    y: 80
+    z: 250
+  ```
+</ParamField>
+
+## Item Configuration
+
+<ParamField path="savedItems" type="map" default="{}">
+  Map of saved items that can drop in this area, with their drop probability.
+  
+  **Structure:**
+  ```yaml
+  savedItems:
+    diamond_sword: 5.0    # 5% chance
+    golden_apple: 10.0    # 10% chance
+    emerald: 50.0         # 50% chance
+  ```
+  
+  Items are saved using `/saveitem` and added to areas using `/saveitem add`.
+  
+  **Probabilities:**
+  - Values are percentages (0-100)
+  - Multiple items can drop per cycle
+  - Probabilities are independent (not mutually exclusive)
+</ParamField>
+
+## Entity Configuration
+
+<ParamField path="entities" type="map" default="{}">
+  Map of entity types that can spawn in this area, with their spawn probability.
+  
+  **Structure:**
+  ```yaml
+  entities:
+    ZOMBIE: 20.0      # 20% chance
+    SKELETON: 15.0    # 15% chance
+    CREEPER: 10.0     # 10% chance
+    CHICKEN: 50.0     # 50% chance (harmless)
+  ```
+  
+  **Valid entity types:** Any valid Bukkit `EntityType` enum value. Common examples:
+  - `ZOMBIE`, `SKELETON`, `CREEPER`, `SPIDER`
+  - `PIG`, `COW`, `CHICKEN`, `SHEEP`
+  - `IRON_GOLEM`, `VILLAGER`
+  - `ENDER_DRAGON`, `WITHER` (bosses - use with caution!)
+  
+  See [Bukkit EntityType documentation](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EntityType.html) for all types.
+</ParamField>
+
+## State Properties
+
+These properties track the area's current state and are managed automatically:
+
+<ParamField path="isRaining" type="boolean" default="false">
+  Whether rain is currently active in the area. Managed by `/rainarea start` and `/rainarea stop`.
+  
+  **Do not edit manually** - use commands instead.
+</ParamField>
+
+<ParamField path="hasRainedOnce" type="boolean" default="false">
+  Whether the area has completed at least one rain cycle. Used for one-time areas.
+  
+  **Do not edit manually** unless you need to reset a one-time area.
+</ParamField>
+
+## Example Area Configuration
+
+### areas.yml Structure
+
+```yaml
+areas:
+  treasure_room:
+    world: world
+    pos1:
+      x: 100
+      y: 64
+      z: 200
+    pos2:
+      x: 120
+      y: 75
+      z: 220
+    enabled: true
+    oneTime: false
+    itemsPerBlock: 5
+    timerTicks: 40
+    rainPerSecond: 2
+    savedItems:
+      diamond: 5.0
+      gold_ingot: 15.0
+      emerald: 25.0
+      iron_ingot: 50.0
+    entities:
+      ZOMBIE: 10.0
+    experienceOrbs: 3
+    minExpPerOrb: 5
+    maxExpPerOrb: 20
+    isRaining: false
+    hasRainedOnce: false
+```
+
+## Configuration via Commands
+
+You can configure area properties using commands without editing files:
+
+### Basic Configuration
+
+```bash
+# Enable/disable an area
+/rainarea config my_area enabled true
+
+# Make it one-time use
+/rainarea config my_area oneTime true
+
+# Adjust rain density
+/rainarea config my_area itemsPerBlock 10
+
+# Change rain speed
+/rainarea config my_area timerTicks 20
+/rainarea config my_area rainPerSecond 5
+```
+
+### Experience Configuration
+
+```bash
+# Set experience orbs per cycle
+/rainarea config my_area experienceOrbs 5
+
+# Set experience range
+/rainarea config my_area minExpPerOrb 10
+/rainarea config my_area maxExpPerOrb 50
+```
+
+### Adding Items to Areas
+
+```bash
+# First, save an item (hold it in your hand)
+/saveitem diamond_sword
+
+# Add it to an area with 10% drop chance
+/saveitem add my_area diamond_sword 10.0
+
+# Add more items
+/saveitem add my_area golden_apple 5.0
+/saveitem add my_area emerald 50.0
+```
+
+### Removing Items from Areas
+
+```bash
+/saveitem removearea my_area diamond_sword
+```
+
+## Configuration Scenarios
+
+### Scenario 1: Rare Treasure Event
+
+**Goal:** Occasional high-value items, one-time use
+
+```bash
+/rainarea create treasure_event
+/rainarea config treasure_event oneTime true
+/rainarea config treasure_event itemsPerBlock 3
+/rainarea config treasure_event timerTicks 60
+/rainarea config treasure_event experienceOrbs 10
+/rainarea config treasure_event minExpPerOrb 20
+/rainarea config treasure_event maxExpPerOrb 50
+
+/saveitem add treasure_event diamond 10.0
+/saveitem add treasure_event netherite_ingot 5.0
+/saveitem add treasure_event enchanted_golden_apple 2.0
+```
+
+### Scenario 2: Mob Arena Challenge
+
+**Goal:** Spawn hostile mobs with occasional healing items
+
+```yaml
+areas:
+  mob_arena:
+    enabled: true
+    oneTime: false
+    itemsPerBlock: 2
+    timerTicks: 30
+    rainPerSecond: 1
+    savedItems:
+      golden_apple: 10.0
+      cooked_beef: 30.0
+    entities:
+      ZOMBIE: 40.0
+      SKELETON: 30.0
+      CREEPER: 20.0
+      SPIDER: 25.0
+    experienceOrbs: 2
+    minExpPerOrb: 5
+    maxExpPerOrb: 15
+```
+
+### Scenario 3: Peaceful Resource Farm
+
+**Goal:** Regular resource drops, no mobs
+
+```yaml
+areas:
+  resource_farm:
+    enabled: true
+    oneTime: false
+    itemsPerBlock: 8
+    timerTicks: 20
+    rainPerSecond: 3
+    savedItems:
+      iron_ingot: 60.0
+      gold_ingot: 40.0
+      diamond: 10.0
+      coal: 80.0
+      emerald: 15.0
+    entities: {}  # No entities
+    experienceOrbs: 5
+    minExpPerOrb: 1
+    maxExpPerOrb: 5
+```
+
+### Scenario 4: Lightning Fast Chaos
+
+**Goal:** Rapid, intense rain for short duration
+
+```bash
+/rainarea config chaos itemsPerBlock 20
+/rainarea config chaos timerTicks 5
+/rainarea config chaos rainPerSecond 10
+/rainarea config chaos experienceOrbs 15
+```
+
+<Warning>
+  High values for `itemsPerBlock`, `rainPerSecond`, and low `timerTicks` can cause significant server lag. Test carefully and monitor server performance!
+</Warning>
+
+## Performance Considerations
+
+### Rain Intensity Calculation
+
+The total number of spawns per second is calculated as:
+
+```
+Spawns per second = (Volume × itemsPerBlock × rainPerSecond) / (timerTicks / 20)
+```
+
+Where `Volume = (x2-x1) × (y2-y1) × (z2-z1)`
+
+### Performance Guidelines
+
+<AccordionGroup>
+  <Accordion title="Small Areas (< 1000 blocks)">
+    - `itemsPerBlock`: Up to 15
+    - `timerTicks`: 10-40
+    - `rainPerSecond`: Up to 10
+    - Safe for frequent use
+  </Accordion>
+  
+  <Accordion title="Medium Areas (1000-10000 blocks)">
+    - `itemsPerBlock`: 5-10
+    - `timerTicks`: 20-60
+    - `rainPerSecond`: 2-5
+    - Monitor server TPS
+  </Accordion>
+  
+  <Accordion title="Large Areas (> 10000 blocks)">
+    - `itemsPerBlock`: 1-5
+    - `timerTicks`: 40-100
+    - `rainPerSecond`: 1-3
+    - Use sparingly, high impact
+  </Accordion>
+</AccordionGroup>
+
+### Performance Limits
+
+Respect the global performance limits set in [config.yml](/configuration/config-file):
+
+- `max-active-areas`: Maximum simultaneous active rain areas
+- `max-items-per-tick`: Item spawn rate limiter
+- `max-entities-per-tick`: Entity spawn rate limiter
+
+## Viewing Area Information
+
+To see all properties of an area:
+
+```bash
+/rainarea info <area_name>
+```
+
+This displays:
+- World and position
+- Area volume
+- All configuration properties
+- Current state (enabled, raining, has rained)
+- Saved items and entities with probabilities
+
+## Reloading Configuration
+
+After manually editing `areas.yml`:
+
+```bash
+/rainarea reload
+```
+
+This reloads all configuration files, including area properties.
