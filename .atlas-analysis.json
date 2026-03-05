@@ -1,0 +1,112 @@
+{
+  "projectType": "general",
+  "projectName": "RainTools",
+  "projectDescription": "A Minecraft plugin that creates customizable rain areas where items, experience orbs, and entities can fall",
+  "theme": "willow",
+  "primaryColor": "#6B8E23",
+  "lightColor": "#9ACD32",
+  "darkColor": "#556B2F",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/rain-areas",
+              "concepts/saved-items",
+              "concepts/area-selection"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/creating-areas",
+              "guides/configuring-areas",
+              "guides/managing-items",
+              "guides/permissions"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/config-file",
+              "configuration/area-properties",
+              "configuration/messages"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Commands",
+            "pages": [
+              "api/commands/rainarea",
+              "api/commands/saveitem"
+            ]
+          },
+          {
+            "group": "Java API",
+            "pages": [
+              "api/java/overview",
+              "api/java/area-manager",
+              "api/java/rain-manager",
+              "api/java/item-manager",
+              "api/java/models"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "api/permissions",
+              "api/events"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Create custom rain areas with defined boundaries",
+    "Configure items to fall with customizable probabilities",
+    "Add experience orbs with configurable amounts",
+    "One-time or repeating rain areas",
+    "Automatic entity cleanup after 20 minutes",
+    "Multi-language support (English and Spanish)",
+    "Console command support",
+    "Customizable messages"
+  ],
+  "publicApiSurface": [
+    "/rainarea create <name>",
+    "/rainarea delete <name>",
+    "/rainarea list",
+    "/rainarea start <name>",
+    "/rainarea stop <name>",
+    "/rainarea info <name>",
+    "/rainarea config <area> <property> <value>",
+    "/rainarea reload",
+    "/saveitem <name>",
+    "/saveitem list",
+    "/saveitem delete <name>",
+    "/saveitem add <area> <item> <probability>",
+    "/saveitem removearea <area> <item>",
+    "AreaManager.createArea()",
+    "AreaManager.deleteArea()",
+    "AreaManager.getArea()",
+    "RainManager.startRain()",
+    "RainManager.stopRain()",
+    "ItemManager.saveItem()",
+    "ItemManager.getItemStack()"
+  ]
+}
