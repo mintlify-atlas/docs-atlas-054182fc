@@ -98,7 +98,11 @@ public class YourPlugin extends JavaPlugin {
 
 ## Accessing Managers
 
-RainTools provides three main manager classes:
+RainTools provides five manager classes for different functionality:
+
+### Core Managers
+
+The three main managers for rain area functionality:
 
 ```java
 import enchanting.tools.rainTools.RainTools;
@@ -116,13 +120,82 @@ public class YourPlugin extends JavaPlugin {
     public void onEnable() {
         RainTools rainTools = RainTools.getInstance();
         
-        // Access the managers
+        // Access the core managers
         areaManager = rainTools.getAreaManager();
         rainManager = rainTools.getRainManager();
         itemManager = rainTools.getItemManager();
     }
 }
 ```
+
+**Core Managers:**
+- **[AreaManager](/api/java/area-manager)** - Create, delete, and manage rain areas
+- **[RainManager](/api/java/rain-manager)** - Start, stop, and control rain events
+- **[ItemManager](/api/java/item-manager)** - Save and manage items for rain drops
+
+### Utility Managers
+
+Two additional managers for configuration and localization:
+
+```java
+import enchanting.tools.rainTools.managers.ConfigManager;
+import enchanting.tools.rainTools.managers.LanguageManager;
+
+public class YourPlugin extends JavaPlugin {
+    
+    private ConfigManager configManager;
+    private LanguageManager languageManager;
+    
+    @Override
+    public void onEnable() {
+        RainTools rainTools = RainTools.getInstance();
+        
+        // Access utility managers
+        configManager = rainTools.getConfigManager();
+        languageManager = rainTools.getLanguageManager();
+    }
+}
+```
+
+**Utility Managers:**
+- **ConfigManager** - Internal configuration file management (areas.yml, items.yml)
+- **LanguageManager** - Message localization and placeholder replacement
+
+<Note>
+  ConfigManager is primarily for internal use. Most developers should use AreaManager and ItemManager instead, which provide higher-level APIs.
+</Note>
+
+<Accordion title="LanguageManager Usage">
+  The LanguageManager provides methods for message localization:
+
+  ```java
+  LanguageManager langManager = rainTools.getLanguageManager();
+  
+  // Get a simple message
+  String message = langManager.getMessage("success.area-created");
+  
+  // Get a message with placeholders
+  Map<String, String> placeholders = new HashMap<>();
+  placeholders.put("area", "treasure_room");
+  placeholders.put("volume", "1000");
+  String msg = langManager.getMessage("success.area-created", placeholders);
+  player.sendMessage(msg);
+  
+  // Change language
+  langManager.setLanguage("es");
+  langManager.loadLanguage();
+  
+  // Get current language
+  String current = langManager.getCurrentLanguage(); // "es"
+  ```
+
+  **Available Methods:**
+  - `getMessage(String path)` - Get translated message
+  - `getMessage(String path, Map<String, String> placeholders)` - Get message with replacements
+  - `setLanguage(String language)` - Change active language
+  - `getCurrentLanguage()` - Get current language code
+  - `loadLanguage()` - Reload language files
+</Accordion>
 
 ## Basic Integration Example
 
